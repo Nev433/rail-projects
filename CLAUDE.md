@@ -611,25 +611,27 @@ Update discipline:
 
 ## Open decisions
 
-A short backlog of choices this file flags but doesn't make:
+Cross-cutting workspace decisions and tech-debt items are tracked as
+GitHub Issues on the `rail-projects` repo:
 
-1. **Node version** — pick a workspace-wide minimum (Rail-ID-Service uses
-   `>=26`; Timetable CI uses 20).
-2. **Backend test framework** — Jest is the partial default (3 of 6
-   services); commit and adopt across the board, or drop.
-3. **`nestjs-pino`** — adopt properly in Infrastructure + RollingStock,
-   or remove the dependency.
-4. **Port 4200 collision** — between Rail-ID-Service and railML-Infrastructure.
-5. **railML-Crew API port** — its CLAUDE.md says 3020; `proxy.conf.json`
-   says 3025. Pick one.
-6. **PostgreSQL** in the stack table — no project uses it. Remove or
-   adopt.
-7. **Versioned Neo4j migrations** — no project has them today. Pick a
-   tool / pattern.
-8. **Promote `rail-id-client`** as the universal source of Rail-ID
-   shapes — adopt it in Crew, Timetable, RollingStock, StockCrewPlan.
-9. **De-duplicate `railML/` folders** under the four railML projects —
-   replace with references to `standards/railML/3.3/source/schema/`.
-10. **Glossary cleanup** — confirm whether NAPTAN, Darwin, TRUST, EPIP,
-    SIRI, TAF/TAP TSI, MoI, NDOVLoket, n10s should be removed (zero usage)
-    or genuinely kept for forward-looking context.
+- **Open**: https://github.com/Nev433/rail-projects/issues
+- **Closed (decision log)**: https://github.com/Nev433/rail-projects/issues?q=is%3Aissue+is%3Aclosed
+
+Project-specific decisions belong on the relevant project repo's own
+Issues tab — e.g. the railML-Crew port-numbering disagreement lives at
+https://github.com/Nev433/railML-Crew/issues.
+
+When closing an issue, add a short comment summarising the decision so
+the closed-issues list doubles as a searchable decision log.
+
+### Filing labels (set up once)
+
+A small label set keeps filtering useful without becoming bureaucracy:
+
+- `decision-needed` — requires a call, no obvious right answer
+- `tech-debt` — known-bad pattern to fix
+- `cross-cutting` — affects multiple projects
+- `priority:high` / `priority:low` — only the extremes; everything
+  else is implicit medium
+- `area:standards`, `area:nestjs`, `area:angular`, `area:neo4j`,
+  `area:ports` — domain tags for filtering
