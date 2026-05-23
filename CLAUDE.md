@@ -20,34 +20,68 @@ RINF, ERA Ontology), and modernisation of legacy mainframe-era systems.
 
 ## Repository topology
 
+`~/Developer/` is a **plain folder** (not a git repo) containing
+independent project repos plus this meta repo. Each project has its own
+`.git`, lives on GitHub at `github.com/Nev433/<name>`, and is cloned /
+worked on / released independently.
+
 ```
-~/Developer/
-├── CLAUDE.md                       ← this file
-├── .claude/                        ← workspace-wide Claude settings
-├── .gitignore
-├── standards/                      ← data standards — single source of truth
-│   ├── README.md
-│   ├── MANIFEST.yaml
-│   ├── CHANGELOG.md
-│   └── railML/3.3/                 ← currently the only tracked standard
-├── Rail-ID-Service/                ← canonical identity / resolution hub (Nest + Angular)
-├── rail-id-client/                 ← shared TypeScript client for Rail-ID-Service
-├── railML-Infrastructure/          ← network / map / route-finding (Nest + Angular, zoneless)
-├── railML-Timetable/               ← timetable editor + multi-format export (Nest + Angular)
-├── railML-RollingStock/            ← rolling-stock editor (Nest + Angular)
-├── railML-Crew/                    ← crew management (Nest + Angular)
-├── railML-StockCrewPlan/           ← combined stock + crew rostering (Nest + Angular)
-├── TPRConvertor/                   ← Network Rail TPR PDF→data (.NET + React/Tauri)
-├── ToDo/                           ← legacy / pre-conversion projects, not in active scope
-├── export/                         ← project snapshots — see "Out of scope"
-├── build-all.sh                    ← workspace build helper
-├── export-projects.sh              ← workspace export helper
-└── ecosystem.config.js             ← PM2 process map for local dev
+~/Developer/                                  (plain folder, not a git repo)
+│
+├── CLAUDE.md → rail-projects/CLAUDE.md       (symlink — Claude Code follows
+│                                              the parent walk into here)
+│
+├── rail-projects/                            github.com/Nev433/rail-projects
+│   ├── CLAUDE.md                             ← this file (workspace docs)
+│   ├── standards/                            ← shared data standards
+│   │   ├── README.md
+│   │   ├── MANIFEST.yaml
+│   │   ├── CHANGELOG.md
+│   │   └── railML/3.3/                       ← currently the only tracked standard
+│   └── .gitignore
+│
+├── Rail-ID-Service/                          github.com/Nev433/Rail-ID-Service
+├── rail-id-client/                           github.com/Nev433/rail-id-client
+├── railML-Infrastructure/                    github.com/Nev433/railML-Infrastructure
+├── railML-Timetable/                         github.com/Nev433/railML-Timetable
+├── railML-RollingStock/                      github.com/Nev433/railML-RollingStock
+├── railML-Crew/                              github.com/Nev433/railML-Crew
+├── railML-StockCrewPlan/                     github.com/Nev433/railML-StockCrewPlan
+├── TPRConvertor/                             github.com/Nev433/TPRConvertor
+│
+├── .claude/                                  ← local Claude Code settings
+│                                              (not in any repo, lives on disk)
+├── ToDo/                                     ← legacy / pre-conversion projects,
+│                                              not in active scope (gitignored
+│                                              at the rail-projects level)
+│
+└── (workspace tooling files — orphaned, no current git home — see open
+    decisions issue #11)
+    ├── build-all.sh                          ← workspace build helper
+    ├── export-projects.sh                    ← workspace export helper
+    ├── ecosystem.config.js                   ← PM2 process map for local dev
+    └── export/                               ← old project snapshots
 ```
 
-Each project is independently runnable and has its own `package.json` (or
-`.sln`) and `node_modules`. The workspace itself is **not** an npm
-monorepo — there's no root `package.json` orchestrating builds.
+Project descriptions:
+
+- **Rail-ID-Service** — canonical identity / resolution hub (Nest + Angular)
+- **rail-id-client** — shared TypeScript client for Rail-ID-Service
+- **railML-Infrastructure** — network / map / route-finding (Nest + Angular, zoneless)
+- **railML-Timetable** — timetable editor + multi-format export (Nest + Angular)
+- **railML-RollingStock** — rolling-stock editor (Nest + Angular)
+- **railML-Crew** — crew management (Nest + Angular)
+- **railML-StockCrewPlan** — combined stock + crew rostering (Nest + Angular)
+- **TPRConvertor** — Network Rail TPR PDF→data (.NET 10 + React + Tauri)
+
+Each project is independently runnable, has its own `package.json` (or
+`.sln`) and `node_modules`, and is built and released on its own. The
+workspace is **not** an npm monorepo and **not** a git monorepo — there's
+no parent `package.json` or `.git` orchestrating builds.
+
+Cross-project shared assets live in **rail-projects** (this repo) — the
+canonical CLAUDE.md, the `standards/` catalogue, and any other
+workspace-wide documentation.
 
 ---
 
@@ -538,15 +572,51 @@ Listed so they're not mistaken for drift to be "fixed."
 
 ## Working with Claude in this workspace
 
-- `.claude/` at workspace level holds shared settings. Per-project
-  `.claude/` may add project-only agents, commands, or skills — prefer
-  workspace level for anything reusable.
-- When uncertain about a data standard, consult
-  [`standards/README.md`](./standards/README.md) and the per-version
-  `SOURCE.md` files **before** inferring from training data.
-- When consulting a memory note that names a file, function, or env var,
-  verify it still exists before acting on it — see the parent
-  guidance on stale memory.
+### Context loading
+
+`~/Developer/CLAUDE.md` is a **symlink** to this file. When you open
+Claude Code inside any project (e.g. `~/Developer/railML-Crew/`), the
+parent-directory walk loads:
+
+1. The project's own `CLAUDE.md` (project-specific conventions).
+2. `~/Developer/CLAUDE.md` → this file (workspace conventions).
+3. `~/.claude/CLAUDE.md` if you have a user-level file.
+
+So workspace context is automatically available in every project session,
+without any manual setup, via the symlink. Keep it that way — if the
+symlink is broken, no project will see workspace conventions.
+
+### Where to work
+
+- **Open Claude Code inside a single project**, not at `~/Developer/`.
+  Per-project sessions are focused and load just the relevant
+  `node_modules`, file tree, and CLAUDE.md.
+- **Workspace-wide work** (editing this file, the `standards/` catalogue,
+  filing cross-cutting issues) is the only case for opening Claude Code
+  in `~/Developer/rail-projects/` itself.
+
+### Settings
+
+- **`~/Developer/.claude/`** holds local Claude Code settings for the
+  workspace folder. Not in any git repo — local-only state.
+- **Per-project `.claude/`** in each project repo holds settings that
+  *do* travel with the project (committed). Prefer workspace-level for
+  anything reusable across projects; per-project for project-specific
+  agents, commands, or skills.
+
+### Standards lookup
+
+When uncertain about a data standard, consult
+[`standards/README.md`](./standards/README.md) and the per-version
+`SOURCE.md` files **before** inferring from training data.
+
+### Stale memory
+
+When consulting a memory note that names a file, function, or env var,
+verify it still exists before acting on it. The split means file paths
+that were correct before (e.g. `~/Developer/railML-Crew/...`) are still
+correct, but anything that referenced the umbrella git history is
+necessarily stale.
 
 ---
 
@@ -602,10 +672,13 @@ Update discipline:
 
 - **Production deployment configuration** — handled outside this workspace.
 - **Customer-specific contractual material** — kept separately.
-- **`ToDo/`** — legacy / pre-conversion projects, ignored when assessing
-  workspace conventions.
-- **`export/`** — snapshots of six projects exported for sharing; not the
-  live source. Don't treat as authoritative.
+- **`~/Developer/ToDo/`** — legacy / pre-conversion projects, ignored
+  when assessing workspace conventions. Gitignored at the `rail-projects`
+  level; otherwise just a local folder.
+- **`~/Developer/export/`** — historical project snapshots from before
+  the split. Not the live source. Don't treat as authoritative; safe to
+  delete once it's confirmed no scripts depend on it
+  (see open decisions issue #11).
 
 ---
 
