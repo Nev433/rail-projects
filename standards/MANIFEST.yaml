@@ -1,0 +1,135 @@
+# Catalogue of data standards tracked, planned, or referenced in this
+# workspace.
+#
+# A standard's top-level `status` is one of:
+#   tracked    - files are present under standards/<slug>/<version>/
+#   planned    - intended to be tracked; metadata captured for context
+#   referenced - mentioned in code or docs but no tracking commitment yet
+#
+# Each version's `status` follows the same vocabulary. Use the per-version
+# status when only some versions of a standard are tracked locally.
+#
+# Schema:
+#   standards:
+#     <slug>:
+#       name:        Human-readable name
+#       authority:   Standards body / publisher
+#       homepage:    Upstream URL
+#       license:     SPDX identifier or short description
+#       description: One-line summary
+#       status:      tracked | planned | referenced
+#       versions:
+#         - version:  Upstream version string
+#           folder:   Path relative to this file (omit if not tracked)
+#           added:    ISO date the version was added (when tracked)
+#           current:  true if this is the version new consumers should adopt
+#           status:   tracked | planned
+#           notes:    Optional free-text note
+#       used_by:     Workspace projects that consume this standard
+#                    (current or planned)
+
+standards:
+
+  # ---------- Tracked ----------
+
+  railml:
+    name: railML
+    authority: railML.org e.V.
+    homepage: https://www.railml.org/
+    license: CC BY-NC-ND 4.0 (with registration / certification requirements)
+    description: XML-based railway domain language covering infrastructure, rolling stock, timetable and interlocking.
+    status: tracked
+    versions:
+      - version: 3.3-SR2
+        folder: railML/3.3
+        added: 2026-05-23
+        current: true
+        status: tracked
+    used_by:
+      - railML-Infrastructure
+      - railML-RollingStock
+      - railML-StockCrewPlan
+      - railML-Timetable
+      - railML-Crew
+
+  # ---------- Planned ----------
+
+  netex:
+    name: NeTEx (Network Timetable Exchange)
+    authority: CEN TC 278 / WG 3 / SG 9
+    homepage: http://netex-cen.eu/
+    license: CEN standard; XSDs freely downloadable, normative spec text is paid
+    description: CEN XML standard for static public-transport network, timetable and fare data.
+    status: planned
+    versions:
+      - version: "1.2.2"
+        current: true
+        status: planned
+        notes: Latest stable. v1.3 in development. Bring in when first consumer needs full schema access.
+    used_by:
+      - Rail-ID-Service     # NeTEx is seeded as an identifier type
+      - railML-Timetable    # listed as an export format
+
+  siri:
+    name: SIRI (Service Interface for Real Time Information)
+    authority: CEN TC 278 / WG 3
+    homepage: https://www.siri-cen.eu/
+    license: CEN standard; XSDs freely downloadable
+    description: Real-time public-transport companion to NeTEx — vehicle monitoring, stop monitoring, situations.
+    status: planned
+    versions:
+      - version: "2.1"
+        current: true
+        status: planned
+        notes: Latest stable. No active consumer yet; brought in alongside NeTEx when a real-time use case lands.
+    used_by: []
+
+  gtfs:
+    name: GTFS (General Transit Feed Specification)
+    authority: MobilityData (originally Google)
+    homepage: https://gtfs.org/
+    license: Apache 2.0 (reference schema) / open
+    description: De-facto open standard for public-transport schedules and stop information; Realtime extension covers live updates.
+    status: planned
+    versions:
+      - version: "schedule (living spec)"
+        current: true
+        status: planned
+        notes: GTFS Schedule is a living spec — pin to a dated revision (e.g. 2026-03) when first tracked.
+      - version: "realtime 2.0"
+        status: planned
+        notes: Optional add-on for real-time updates; bring in only when a real-time consumer exists.
+    used_by:
+      - railML-Timetable    # listed as an export format
+
+  cif:
+    name: CIF (Common Interface File)
+    authority: Network Rail / Rail Delivery Group
+    homepage: https://wiki.openraildata.com/index.php?title=CIF
+    license: Network Rail Open Data Licence
+    description: Fixed-width text format used by Network Rail to distribute the GB Working Timetable and short-term plan overlays.
+    status: planned
+    versions:
+      - version: "ATOC CIF v3"
+        current: true
+        status: planned
+        notes: The schema is stable; data refresh is weekly. Bring in the spec doc + a sample feed extract when a parser is built.
+    used_by:
+      - railML-Timetable    # listed as an export format
+      - Rail-ID-Service     # seeds CIF/TIPLOC/STANOX identifier types
+
+  # ---------- Referenced (files held elsewhere or not yet promoted) ----------
+
+  tpr:
+    name: TPR (Timetable Planning Rules)
+    authority: Network Rail
+    homepage: https://www.networkrail.co.uk/industry-and-commercial/information-for-operators/timetabling/timetable-planning-rules/
+    license: Network Rail — check use terms before redistribution
+    description: NR-published rules governing sectional running times, junction margins, headways and station dwell times for GB timetable planning.
+    status: referenced
+    versions:
+      - version: "2026 V4"
+        status: referenced
+        notes: Per-route PDFs (AR, EM, KT, LNE, NAT, NWC, SC, SX, WW, WX) currently live under TPRConvertor/TPRs/2026/V4/. Promote into standards/tpr/2026-V4/ once the directory layout for non-XML standards is decided.
+    used_by:
+      - TPRConvertor
