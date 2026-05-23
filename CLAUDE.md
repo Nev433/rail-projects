@@ -624,6 +624,29 @@ https://github.com/Nev433/railML-Crew/issues.
 When closing an issue, add a short comment summarising the decision so
 the closed-issues list doubles as a searchable decision log.
 
+### Closure-comment shape
+
+Two or three sentences. Capture **what** and **why**, not just **what** —
+in six months "we decided X" is much less useful than "we decided X
+**because** Y", because the rationale is what tells future-you whether
+the decision still applies after circumstances change.
+
+```
+Decided: <the choice in one line>
+Why:     <the reason in one or two lines>
+Done:    <what changed, with a link to the commit(s) or PR(s)>
+```
+
+Example (a hypothetical closure of "Resolve port 4200 collision"):
+
+> **Decided**: Rail-ID-Service stays on 4200; railML-Infrastructure moves to 4205.
+> **Why**: Rail-ID-Service is the canonical hub — other services proxy
+> to it during dev — so it gets the conventional Angular default.
+> Infrastructure is consumed less often standalone.
+> **Done**: `proxy.conf.json` + `angular.json` updated in
+> `Nev433/railML-Infrastructure@<sha>`. Ports table updated in
+> `Nev433/rail-projects@<sha>`.
+
 ### Filing labels (set up once)
 
 A small label set keeps filtering useful without becoming bureaucracy:
