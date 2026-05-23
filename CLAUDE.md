@@ -109,20 +109,36 @@ deviates, see "Per-project deviations" below.
 
 ## Ports and service map
 
-Local development assumes these ports. Two conflicts are flagged.
+Local development assumes these ports. Values are taken from each
+project's `client-ng/angular.json` (`serve.options.port`) and the API's
+`main.ts` default + `client-ng/proxy.conf.json` target.
+
+Client ports follow the convention **client port = API port + 1200**.
 
 | Service | API port | Client port |
 |---|---|---|
-| Rail-ID-Service | 3000 | 4200 ⚠ clash |
-| railML-Infrastructure | 3005 | 4200 ⚠ clash |
-| railML-Timetable | 3010 | 4010 |
+| Rail-ID-Service | 3000 | 4200 |
+| railML-Infrastructure | 3005 | 4205 |
+| railML-Timetable | 3010 | 4210 |
 | railML-RollingStock | 3015 | 4215 |
-| railML-Crew | 3025 (CLAUDE.md says 3020; `proxy.conf.json` says 3025) ⚠ | 4225 |
-| railML-StockCrewPlan | TBC | TBC |
+| railML-StockCrewPlan | 3025 ⚠ clash with Crew | 4220 |
+| railML-Crew | 3025 ⚠ clash with StockCrewPlan (also: `main.ts` defaults to 3020 but `proxy.conf.json` proxies to 3025 — internal disagreement) | 4225 |
 
-**Decision pending**: resolve the 4200 collision between Rail-ID-Service
-and railML-Infrastructure (only one can run at a time on the default port)
-and reconcile railML-Crew's API port in its own docs.
+**Decision pending** (tracked as GitHub issues):
+
+- [rail-projects #2](https://github.com/Nev433/rail-projects/issues/2) —
+  resolve the **3025 API collision** between railML-Crew and
+  railML-StockCrewPlan.
+- [railML-Crew #1](https://github.com/Nev433/railML-Crew/issues/1) —
+  reconcile that project's internal 3020 vs 3025 disagreement.
+
+> **Historical note**: an earlier version of this table claimed
+> Rail-ID-Service and railML-Infrastructure both used client port 4200,
+> creating a non-existent collision. Reality: Infrastructure pins 4205 in
+> its `angular.json` already, following the convention above. The false
+> entry has been corrected, and
+> [rail-projects #1](https://github.com/Nev433/rail-projects/issues/1)
+> was closed as "not actually an issue."
 
 ---
 
@@ -710,15 +726,18 @@ Why:     <the reason in one or two lines>
 Done:    <what changed, with a link to the commit(s) or PR(s)>
 ```
 
-Example (a hypothetical closure of "Resolve port 4200 collision"):
+A worked example — the actual closure of [rail-projects #1](https://github.com/Nev433/rail-projects/issues/1) ("Resolve port 4200 collision"):
 
-> **Decided**: Rail-ID-Service stays on 4200; railML-Infrastructure moves to 4205.
-> **Why**: Rail-ID-Service is the canonical hub — other services proxy
-> to it during dev — so it gets the conventional Angular default.
-> Infrastructure is consumed less often standalone.
-> **Done**: `proxy.conf.json` + `angular.json` updated in
-> `Nev433/railML-Infrastructure@<sha>`. Ports table updated in
-> `Nev433/rail-projects@<sha>`.
+> **Decided**: Closed — not actually an issue.
+> **Why**: The audit that opened this misread railML-Infrastructure's
+> CLAUDE.md as documenting port 4200. The real source of truth is
+> `client-ng/angular.json` `serve.options.port`, which already pins
+> Infrastructure to 4205 — following the workspace convention of
+> *client port = api port + 1200*.
+> **Done**: Workspace CLAUDE.md ports table corrected in
+> `Nev433/rail-projects@<sha>`. railML-Infrastructure's CLAUDE.md
+> updated to match its angular.json in
+> `Nev433/railML-Infrastructure@<sha>`.
 
 ### Filing labels (set up once)
 
