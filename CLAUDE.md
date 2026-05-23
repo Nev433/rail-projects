@@ -547,13 +547,31 @@ The de-facto shared TypeScript package is
 Rail-ID-Service data should depend on this package** via a `file:` ref
 rather than redefining the shapes locally.
 
-Today only railML-Infrastructure consumes it; Crew, Timetable,
-RollingStock, and StockCrewPlan duplicate the type definitions in their
-own `models.ts`.
+### Current adoption (verified by code inspection, not by docs)
+
+| Project | Status |
+|---|---|
+| railML-Timetable | ✓ imports from `rail-id-client` (`api/src/sync/sync.service.ts`) |
+| railML-Infrastructure | ✓ proxy controller uses workspace-shared HTTP types |
+| railML-Crew | ✗ has its own `api/src/common/rail-id.client.ts` + local interface definitions — **real duplication, worth migrating** |
+| Rail-ID-Service | n/a — *is* the upstream |
+| railML-RollingStock | n/a — no Rail-ID integration today (no `RAIL_ID_URL` env, no entity sync) |
+| railML-StockCrewPlan | n/a — no Rail-ID integration today |
+
+So the migration backlog is **one project** (Crew), not four. See
+[rail-projects #7](https://github.com/Nev433/rail-projects/issues/7)
+for the tracked work.
 
 A general shared-types package (`@rail/shared` or similar) is not in
 place. Promote shared types into `rail-id-client/` until the second
 domain (e.g. railML-Timetable shapes) justifies a second package.
+
+> **Historical note**: an earlier version of this section claimed only
+> Infrastructure consumed `rail-id-client` and that Crew, Timetable,
+> RollingStock and StockCrewPlan all duplicated `RailIdEntity` locally.
+> The deep audit found that overstated: Timetable already imports the
+> package, and RollingStock + StockCrewPlan have no Rail-ID surface to
+> migrate. The matrix above is the corrected picture.
 
 ---
 
