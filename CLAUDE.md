@@ -121,16 +121,13 @@ Client ports follow the convention **client port = API port + 1200**.
 | railML-Infrastructure | 3005 | 4205 |
 | railML-Timetable | 3010 | 4210 |
 | railML-RollingStock | 3015 | 4215 |
-| railML-StockCrewPlan | 3025 ⚠ clash with Crew | 4220 |
-| railML-Crew | 3025 ⚠ clash with StockCrewPlan (also: `main.ts` defaults to 3020 but `proxy.conf.json` proxies to 3025 — internal disagreement) | 4225 |
+| railML-StockCrewPlan | 3020 | 4220 |
+| railML-Crew | 3025 | 4225 |
 
-**Decision pending** (tracked as GitHub issues):
-
-- [rail-projects #2](https://github.com/Nev433/rail-projects/issues/2) —
-  resolve the **3025 API collision** between railML-Crew and
-  railML-StockCrewPlan.
-- [railML-Crew #1](https://github.com/Nev433/railML-Crew/issues/1) —
-  reconcile that project's internal 3020 vs 3025 disagreement.
+All six pairs follow the convention; no collisions. Both
+[rail-projects #2](https://github.com/Nev433/rail-projects/issues/2) and
+[railML-Crew #1](https://github.com/Nev433/railML-Crew/issues/1) are
+closed.
 
 > **Historical note**: an earlier version of this table claimed
 > Rail-ID-Service and railML-Infrastructure both used client port 4200,
