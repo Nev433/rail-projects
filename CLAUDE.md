@@ -38,6 +38,10 @@ worked on / released independently.
 │   │   ├── MANIFEST.yaml
 │   │   ├── CHANGELOG.md
 │   │   └── railML/3.3/                       ← currently the only tracked standard
+│   ├── scripts/                              ← local-dev orchestration
+│   │   ├── README.md
+│   │   ├── build-all.sh                      ← build every NestJS API's dist/
+│   │   └── ecosystem.config.js               ← PM2 process map (12 dev processes)
 │   └── .gitignore
 │
 ├── Rail-ID-Service/                          github.com/Nev433/Rail-ID-Service
@@ -51,16 +55,9 @@ worked on / released independently.
 │
 ├── .claude/                                  ← local Claude Code settings
 │                                              (not in any repo, lives on disk)
-├── ToDo/                                     ← legacy / pre-conversion projects,
-│                                              not in active scope (gitignored
-│                                              at the rail-projects level)
-│
-└── (workspace tooling files — orphaned, no current git home — see open
-    decisions issue #11)
-    ├── build-all.sh                          ← workspace build helper
-    ├── export-projects.sh                    ← workspace export helper
-    ├── ecosystem.config.js                   ← PM2 process map for local dev
-    └── export/                               ← old project snapshots
+└── ToDo/                                     ← legacy / pre-conversion projects,
+                                               not in active scope (gitignored
+                                               at the rail-projects level)
 ```
 
 Project descriptions:
@@ -773,10 +770,6 @@ Update discipline:
 - **`~/Developer/ToDo/`** — legacy / pre-conversion projects, ignored
   when assessing workspace conventions. Gitignored at the `rail-projects`
   level; otherwise just a local folder.
-- **`~/Developer/export/`** — historical project snapshots from before
-  the split. Not the live source. Don't treat as authoritative; safe to
-  delete once it's confirmed no scripts depend on it
-  (see open decisions issue #11).
 
 ---
 
