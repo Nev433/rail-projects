@@ -20,9 +20,22 @@
  *   reuse or reorder versions once shipped.
  * - **`name`** is a short snake_case label used in logs and the
  *   `:_RailMigration {name}` property. It's for humans, not a key.
- * - **`up`** receives the open `Session` and runs whatever Cypher it needs.
- *   It's wrapped in `session.executeWrite(...)` by the runner, so any
- *   side-effect within it is part of the migration's transaction.
+ * - **`up`** receives the open `Session` directly — NOT a managed
+ *   transaction. The migration decides its own transaction shape:
+ *
+ *   - **One-shot statements** (typical for DDL): `await session.run(ddl)`
+ *     per statement. Each is its own auto-commit transaction, so you
+ *     can `try/catch` around the call and recover (e.g. drop an
+ *     orphan index that's blocking a named constraint, then retry).
+ *   - **Atomic data writes**: wrap in
+ *     `await session.executeWrite(async tx => { ... })`. Common for
+ *     multi-step MERGE chains that must succeed-or-fail together.
+ *
+ *   Don't mix schema modifications and data writes inside one
+ *   `executeWrite` block — Neo4j 5+ throws `ForbiddenDueToTransactionType`.
+ *   Split them across two `executeWrite` calls or use `session.run`
+ *   per statement.
+ *
  * - There is **no `down`** by design. Neo4j has no transactional DDL
  *   rollback, schema migrations are typically forward-only, and a "down"
  *   that's wrong is worse than no down at all. If a migration needs
@@ -34,11 +47,14 @@ export interface Neo4jMigration {
   /** Short snake_case label for logs and the audit node. */
   name: string;
   /**
-   * Runs the migration. Receives the active session's executeWrite tx.
+   * Runs the migration. Receives the open session — the runner owns
+   * its lifecycle so don't call `.close()` on it.
    *
-   * @param tx — a Neo4j managed transaction. Use `await tx.run(cypher, params)`.
+   * @param session — open `neo4j-driver` Session. Use `session.run`
+   *                  for per-statement auto-commit OR
+   *                  `session.executeWrite` for atomic groups.
    */
-  up: (tx: import('neo4j-driver').ManagedTransaction) => Promise<void>;
+  up: (session: import('neo4j-driver').Session) => Promise<void>;
 }
 
 /** Per-migration audit record returned by `status()` / `history()`. */

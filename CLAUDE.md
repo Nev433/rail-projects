@@ -731,7 +731,7 @@ export class Neo4jModule {}
   runs after `migrate()`. See `Rail-ID-Service/api/src/init/init.service.ts`
   as the canonical example.
 
-**Adoption status** (May 2026):
+**Adoption status** (May 2026 — all 6 backends):
 
 | Backend | Namespace | Migrations | Notes |
 |---|---|---|---|
@@ -739,10 +739,20 @@ export class Neo4jModule {}
 | railML-Crew | `rail-crew` | 2 | Constraints + deterministic-ID unit-type seed. |
 | railML-Timetable | `rail-timetable` | 1 | Constraints only. |
 | railML-StockCrewPlan | `rail-stock-crew-plan` | 1 | Constraints only. |
-| railML-Infrastructure | — | n/a | No DDL yet — see [rail-projects #22](https://github.com/Nev433/rail-projects/issues/22). |
-| railML-RollingStock | — | n/a | No DDL yet — see [rail-projects #22](https://github.com/Nev433/rail-projects/issues/22). |
+| railML-Infrastructure | `rail-infrastructure` | 1 | Constraints for 10 domain labels; defensive orphan-index cleanup baked in. |
+| railML-RollingStock | `rail-rolling-stock` | 1 | Constraints for 6 domain labels (Vehicle / Class / Type / DesignCode / Formation / AdminSettings singleton). |
 
-Closed [rail-projects #6](https://github.com/Nev433/rail-projects/issues/6).
+Closed [rail-projects #6](https://github.com/Nev433/rail-projects/issues/6) and
+[rail-projects #22](https://github.com/Nev433/rail-projects/issues/22).
+
+**Contract note on `up(session)`**: each migration receives the open
+`neo4j-driver` Session — not a `ManagedTransaction`. The user chooses
+the transaction shape. Use `session.run(stmt)` for per-statement
+auto-commit (good for DDL, lets you `try/catch` per statement to recover
+from issues like orphan unnamed indexes blocking a named constraint).
+Use `session.executeWrite(async tx => { ... })` for atomic data-write
+groups. Don't mix schema mods with data writes inside one `executeWrite` —
+Neo4j 5+ throws `ForbiddenDueToTransactionType`.
 
 ---
 

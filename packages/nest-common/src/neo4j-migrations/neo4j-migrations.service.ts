@@ -175,27 +175,28 @@ export class Neo4jMigrationsService {
     const label = `${migration.version}_${migration.name}`;
     const start = Date.now();
     try {
-      // The user's `up()` runs in its own transaction so it can do
-      // anything: schema mods, data writes, or a mix. (Neo4j forbids
-      // mixing schema mods with data writes within ONE transaction,
-      // but the runner doesn't know what shape `up()` is — it's the
-      // caller's job to keep each migration internally consistent.)
-      await session.executeWrite(async (tx: ManagedTransaction) => {
-        await migration.up(tx);
-      });
-
-      // The audit node is written in a SECOND transaction because we
-      // can't predict whether the migration above was schema- or
-      // data-shaped. A constraint create + this CREATE in the same tx
-      // throws `ForbiddenDueToTransactionType` in Neo4j 5+.
+      // The user's `up()` gets the raw session — they decide whether
+      // each statement is auto-commit (`session.run`) or batched in
+      // `session.executeWrite`. This is necessary because:
       //
-      // Trade-off: atomicity between `up()` and audit is lost. If the
-      // audit write fails (network blip, etc.) AFTER `up()` succeeded,
-      // the migration is in the database but unrecorded — the next
-      // `migrate()` run will re-apply it. This is safe because the
-      // runner contract requires every migration body to be idempotent
-      // (MERGE / IF NOT EXISTS / matches on legacy values that don't
-      // exist after first run). See README "Idempotency contract".
+      // 1. Neo4j 5+ forbids mixing schema mods with data writes in
+      //    ONE transaction (`ForbiddenDueToTransactionType`). A
+      //    migration that does both must split across multiple
+      //    `executeWrite` calls or use per-statement auto-commit.
+      // 2. Managed transactions auto-rollback on any error, so
+      //    `try/catch` inside an `executeWrite` callback can't
+      //    recover. Defensive patterns (e.g. drop an orphan unnamed
+      //    index, then retry the named constraint) need per-statement
+      //    `session.run` calls.
+      await migration.up(session);
+
+      // The audit node is always written in its own transaction. If
+      // it fails AFTER `up()` succeeded (network blip, etc.) the
+      // migration is in the database but unrecorded — the next
+      // `migrate()` will re-apply it. This is safe because the
+      // contract requires every `up()` to be idempotent (MERGE /
+      // IF NOT EXISTS / matches on legacy values that don't exist
+      // after first run). See README "Idempotency contract".
       await session.executeWrite(async (tx: ManagedTransaction) => {
         await tx.run(
           `CREATE (m:${MIGRATION_LABEL} { ` +
