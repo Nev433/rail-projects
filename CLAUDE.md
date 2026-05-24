@@ -534,17 +534,17 @@ Per-project status:
 
 **Vitest** (`vitest run`) + `@analogjs/vite-plugin-angular` + `jsdom`.
 Tests live under `client-ng/src/`. Config in `client-ng/vitest.config.ts`.
-
-Two projects (RollingStock, StockCrewPlan) still declare
-`"test": "ng test"` (Karma/Jasmine) but have Vitest installed — these
-scripts should be updated to `"test": "vitest run"`. Crew was fixed in
-May 2026.
+Every workspace Angular client uses this same shape.
 
 For zoneless projects: do **not** import
 `@analogjs/vite-plugin-angular/setup-vitest` (it pulls in Zone.js). Each
 spec must call `getTestBed().initTestEnvironment(...)` in `beforeAll`
 itself — see [railML-Infrastructure/CLAUDE.md](railML-Infrastructure/CLAUDE.md)
 for the exact shape.
+
+The reference `vitest.config.ts` + `src/test-setup.ts` files live in
+[railML-Infrastructure/client-ng/](https://github.com/Nev433/railML-Infrastructure/tree/main/client-ng);
+copy them when standing up a new Angular project.
 
 ### Maps
 
