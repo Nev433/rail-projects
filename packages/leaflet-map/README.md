@@ -2,16 +2,7 @@
 
 Shared Angular Leaflet map wrapper for the rail-projects workspace. One canonical implementation of "render a Leaflet map sized to its container" that every project in the family imports.
 
-> **Status (May 2026): scaffolded, not yet adopted.** Consumer adoption
-> hit Angular's library-packaging requirement: components imported from
-> `node_modules` need pre-built Ivy metadata (an `ng-packagr` build),
-> not raw TS source. The component code below is the canonical version
-> ready to go, but actually wiring it into a consumer needs
-> `ng-packagr` set up here first. Tracked as a follow-up to
-> [rail-projects #14](https://github.com/Nev433/rail-projects/issues/14).
->
-> Until then, consumers continue to use their local copies. New copies
-> can be created from `src/leaflet-map.component.ts` here as a template.
+**Status (May 2026): ng-packagr-built and adopted by railML-Timetable.** Other consumers can switch over opportunistically.
 
 ## What it gives you
 
@@ -28,9 +19,11 @@ A single standalone Angular component (`<app-leaflet-map>`):
 ```jsonc
 // in <consumer>/client-ng/package.json
 "dependencies": {
-  "rail-leaflet-map": "file:../rail-projects/packages/leaflet-map"
+  "rail-leaflet-map": "file:../../rail-projects/packages/leaflet-map/dist"
 }
 ```
+
+⚠️ **Point at `/dist/`, not the package root.** `ng-packagr` writes the publishable package layout into `dist/` with its own `package.json` that has correct relative paths. `file:`-ref'ing the source root pulls in raw `.ts` files Angular's consumer compiler can't use.
 
 Requires both repos checked out as siblings under `~/Developer/` per the workspace standard layout.
 
@@ -76,13 +69,16 @@ That keeps Leaflet outside the Angular build's tree-shaking concerns.
 
 ## Build / distribution
 
-This package ships **as TypeScript source** (no `dist/`, no build step). Consumer Angular builds compile the source as part of their own pipeline. Works because:
+`ng-packagr` builds an Angular Package Format (APF) bundle into `dist/`. Consumers `file:`-ref the `dist/` folder.
 
-- The package's `main` / `exports` point at `src/index.ts`.
-- Angular 17+ esbuild handles TS imports from `node_modules` cleanly.
-- The component is plain standalone Angular — no AOT-specific tricks that need pre-compilation.
+```bash
+npm install        # also runs `npm run build` via the prepare script
+npm run build      # ng-packagr -p ng-package.json
+```
 
-If/when this needs to be published to npm, switch to an `ng-packagr` build at that point.
+The `prepare` script means `file:`-ref consumers running `npm install` get a freshly-built `dist/` automatically.
+
+If/when this is published to npm, point the publish at `dist/` (or use `npm publish` from inside `dist/`).
 
 ## Related
 

@@ -57,3 +57,8 @@ standards/**/source/model/
 # Legacy projects pending migration into the new Nest+Angular approach.
 # Excluded from git tracking; revisit per-project as each is brought over.
 ToDo/
+
+# ng-packagr build outputs in workspace packages
+packages/*/dist/
+packages/*/out-tsc/
+packages/*/node_modules/

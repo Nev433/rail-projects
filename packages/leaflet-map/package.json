@@ -19,20 +19,24 @@
   },
   "license": "MIT",
   "author": "Craig Nevins (Nev433)",
-  "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
-    }
-  },
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
+  "main": "./dist/fesm2022/rail-leaflet-map.mjs",
+  "module": "./dist/fesm2022/rail-leaflet-map.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/fesm2022/rail-leaflet-map.mjs"
+    }
+  },
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json",
+    "prepare": "npm run build"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -40,5 +44,15 @@
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",
     "leaflet": "^1.9.0"
+  },
+  "devDependencies": {
+    "@angular/common": "^21.2.14",
+    "@angular/compiler": "^21.2.14",
+    "@angular/compiler-cli": "^21.2.14",
+    "@angular/core": "^21.2.14",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
+    "ng-packagr": "^21.2.3",
+    "typescript": "~5.9.2"
   }
 }
