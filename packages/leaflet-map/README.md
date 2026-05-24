@@ -2,6 +2,17 @@
 
 Shared Angular Leaflet map wrapper for the rail-projects workspace. One canonical implementation of "render a Leaflet map sized to its container" that every project in the family imports.
 
+> **Status (May 2026): scaffolded, not yet adopted.** Consumer adoption
+> hit Angular's library-packaging requirement: components imported from
+> `node_modules` need pre-built Ivy metadata (an `ng-packagr` build),
+> not raw TS source. The component code below is the canonical version
+> ready to go, but actually wiring it into a consumer needs
+> `ng-packagr` set up here first. Tracked as a follow-up to
+> [rail-projects #14](https://github.com/Nev433/rail-projects/issues/14).
+>
+> Until then, consumers continue to use their local copies. New copies
+> can be created from `src/leaflet-map.component.ts` here as a template.
+
 ## What it gives you
 
 A single standalone Angular component (`<app-leaflet-map>`):
