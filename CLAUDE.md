@@ -42,6 +42,10 @@ worked on / released independently.
 │   │   ├── README.md
 │   │   ├── build-all.sh                      ← build every NestJS API's dist/
 │   │   └── ecosystem.config.js               ← PM2 process map (12 dev processes)
+│   ├── packages/                             ← workspace-shared TS/Angular pkgs
+│   │   ├── nest-common/                      ← ApiKeyGuard, Neo4jExceptionFilter,
+│   │   │                                     #   @Public, ValidationPipe + Throttler factories
+│   │   └── leaflet-map/                      ← shared Angular Leaflet wrapper
 │   └── .gitignore
 │
 ├── Rail-ID-Service/                          github.com/Nev433/Rail-ID-Service
@@ -357,6 +361,57 @@ Some projects use prefixes or codes that are documented in their own
 The shape every Nest service should follow. Source: convergent patterns
 across Rail-ID-Service, railML-Crew, railML-Infrastructure, railML-Timetable,
 railML-StockCrewPlan, railML-RollingStock.
+
+### Shared infrastructure: `rail-nest-common`
+
+Every backend's `ApiKeyGuard`, `Neo4jExceptionFilter`, `@Public()`
+decorator, `ValidationPipe` defaults, and `ThrottlerModule` config now
+come from the shared
+[`packages/nest-common/`](./packages/nest-common/) package — published
+to consumers via `file:` ref so updates flow through one package, not
+five copies.
+
+```ts
+// in app.module.ts
+import {
+  ApiKeyGuard,
+  NestCommonModule,
+  workspaceThrottlerConfig,
+} from 'rail-nest-common';
+
+imports: [
+  ConfigModule.forRoot({ isGlobal: true }),
+  ThrottlerModule.forRoot(workspaceThrottlerConfig()),
+  NestCommonModule.forRoot(),               // API_SECRET_KEY (default)
+  // Infrastructure uses: NestCommonModule.forRoot({ apiKeyEnvVar: 'API_KEY' })
+],
+providers: [
+  { provide: APP_GUARD, useClass: ApiKeyGuard },
+  { provide: APP_GUARD, useClass: ThrottlerGuard },
+],
+```
+
+```ts
+// in main.ts
+import { Neo4jExceptionFilter, createValidationPipe } from 'rail-nest-common';
+
+app.useGlobalFilters(new Neo4jExceptionFilter());
+app.useGlobalPipes(createValidationPipe());
+```
+
+Adoption status:
+
+| Project | Status |
+|---|---|
+| railML-Infrastructure | ✓ adopted (canonical source) |
+| railML-Crew | ✓ adopted |
+| railML-RollingStock | ✓ adopted |
+| railML-StockCrewPlan | ✓ adopted |
+| railML-Timetable | ✓ adopted |
+| Rail-ID-Service | ✗ legacy — no `ValidationPipe`, no DTOs; adoption deferred until the broader Rail-ID-Service modernisation (its own issues #1 + #3) |
+
+Add `rail-nest-common@file:../../rail-projects/packages/nest-common`
+to `api/package.json` when standing up a new backend.
 
 ### Module layout
 
