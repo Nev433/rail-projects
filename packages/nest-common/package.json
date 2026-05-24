@@ -1,0 +1,57 @@
+{
+  "name": "rail-nest-common",
+  "version": "0.1.0",
+  "description": "Shared NestJS infrastructure for the rail-projects workspace: ApiKeyGuard, @Public, Neo4jExceptionFilter, ValidationPipe + Throttler factories.",
+  "keywords": [
+    "rail",
+    "rail-projects",
+    "nestjs"
+  ],
+  "homepage": "https://github.com/Nev433/rail-projects#readme",
+  "bugs": {
+    "url": "https://github.com/Nev433/rail-projects/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nev433/rail-projects.git",
+    "directory": "packages/nest-common"
+  },
+  "license": "MIT",
+  "author": "Craig Nevins (Nev433)",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/throttler": "^6.0.0",
+    "express": "^5.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/throttler": "^6.5.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "express": "^5.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.0",
+    "typescript": "~5.9.2"
+  }
+}
