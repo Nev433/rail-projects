@@ -184,10 +184,45 @@ Authoritative lookup order when answering a standards question:
 Prefer the local files over training-data knowledge. Standards drift; the
 repo is the source of truth.
 
-**Known violation**: four `railML-*` projects each hold a local copy of
-the railML 3.3 XSDs under `<project>/railML/`. These should be replaced
-with references to `standards/railML/3.3/source/schema/` — tracked as a
-follow-up.
+### Distribution
+
+The workspace's standards are **reference material**, not runtime
+dependencies. No project's build or runtime loads an XSD; the only
+code-level mentions are string literals pointing at the upstream
+[`https://www.railml.org/schemas/3.3/...`](https://www.railml.org/) URLs in
+generated XML.
+
+Given that, the workspace policy is:
+
+- **Canonical-only** — schemas, codelists, model files, and other
+  reference assets live under `rail-projects/standards/<name>/<version>/`
+  and **nowhere else**.
+- **No vendored copies** in consumer repos. The earlier per-project
+  `railML/` folders were removed in May 2026 (closes
+  [rail-projects #8](https://github.com/Nev433/rail-projects/issues/8)).
+- **No npm publish, no git submodule** for static reference assets —
+  these add tooling burden for files that nobody imports.
+
+When a developer needs to view an XSD, open the canonical file in
+`rail-projects/standards/...` directly. Sibling-checkout under
+`~/Developer/` is the standard workspace layout, so the canonical
+copy is always one folder away.
+
+If a future standard becomes a *runtime* dependency (e.g. an XSD
+validator that loads the schema files), that consumer makes the
+publishing decision then, scoped to its specific need. The default
+remains: canonical-only.
+
+### Shared TypeScript code (separate from schemas)
+
+TypeScript code that's genuinely shared between projects (the
+[`rail-id-client`](https://github.com/Nev433/rail-id-client) package, any
+future `@rail/nest-common`, shared Angular components) is a
+different concern. Today: `file:` ref between sibling-checked-out
+repos works for dev. When wider adoption justifies it: publish to
+GitHub Packages under the `@nev433/` scope. `rail-id-client` is
+already prepped for publish (LICENSE, files allowlist, engines,
+prepare script).
 
 ---
 
