@@ -24,7 +24,19 @@ module.exports = {
       cwd: `${BASE}/Rail-ID-Service/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'rail-id-client',
@@ -39,7 +51,19 @@ module.exports = {
       cwd: `${BASE}/railML-Infrastructure/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'infrastructure-client',
@@ -54,7 +78,19 @@ module.exports = {
       cwd: `${BASE}/railML-Timetable/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'timetable-client',
@@ -69,7 +105,19 @@ module.exports = {
       cwd: `${BASE}/railML-RollingStock/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'rolling-stock-client',
@@ -84,7 +132,19 @@ module.exports = {
       cwd: `${BASE}/railML-StockCrewPlan/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'stock-crew-plan-client',
@@ -99,7 +159,19 @@ module.exports = {
       cwd: `${BASE}/railML-Crew/api`,
       script: 'npm',
       args: 'run start:prod',
-      env: { NODE_ENV: 'production' },
+      env: {
+        NODE_ENV: 'production',
+        // Force Node to use the consumer's node_modules tree when resolving
+        // requires inside the symlinked rail-nest-common package. The package
+        // strips its own runtime peer-dep copies (@nestjs/*, rxjs, express,
+        // reflect-metadata) after build (see its postbuild:cleanup script),
+        // so resolution MUST walk up from the consumer's tree to find these.
+        // Without --preserve-symlinks, Node resolves the symlink to the
+        // package's real path under rail-projects/, where the consumer's
+        // @nestjs/* aren't visible — and you get "Cannot find module
+        // '@nestjs/common'" at startup.
+        NODE_OPTIONS: '--preserve-symlinks',
+      },
     },
     {
       name: 'crew-client',

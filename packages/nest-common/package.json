@@ -27,8 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "prepare": "npm run build"
+    "build": "tsc -p tsconfig.json && npm run postbuild:cleanup",
+    "prepare": "npm run build",
+    "_comment_cleanup": "After tsc, remove peer-dep runtimes from this package's own node_modules so consumers' copies are the ones loaded at runtime. Without this, Node's symlink-resolution walks up into THIS package's node_modules first and finds duplicate @nestjs/* classes, breaking Nest DI (Reflector class identity mismatch). See packages/nest-common/README.md.",
+    "postbuild:cleanup": "rm -rf node_modules/@nestjs node_modules/express node_modules/rxjs node_modules/reflect-metadata"
   },
   "engines": {
     "node": ">=22.0.0"

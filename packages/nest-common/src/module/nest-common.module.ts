@@ -1,6 +1,5 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import {
-  ApiKeyGuard,
   API_KEY_ENV_VAR_TOKEN,
   DEFAULT_API_KEY_ENV_VAR,
 } from '../guards/api-key.guard';
@@ -43,14 +42,20 @@ export class NestCommonModule {
   static forRoot(options: NestCommonModuleOptions = {}): DynamicModule {
     return {
       module: NestCommonModule,
+      // Global so the API_KEY_ENV_VAR_TOKEN is visible to ApiKeyGuard
+      // wherever the consumer instantiates it (typically via
+      // { provide: APP_GUARD, useClass: ApiKeyGuard } in AppModule's
+      // own providers). Don't list ApiKeyGuard here — instantiating it
+      // in NestCommonModule's scope hides Reflector / ConfigService
+      // from its constructor and Nest's DI resolver fails at startup.
+      global: true,
       providers: [
         {
           provide: API_KEY_ENV_VAR_TOKEN,
           useValue: options.apiKeyEnvVar ?? DEFAULT_API_KEY_ENV_VAR,
         },
-        ApiKeyGuard,
       ],
-      exports: [ApiKeyGuard, API_KEY_ENV_VAR_TOKEN],
+      exports: [API_KEY_ENV_VAR_TOKEN],
     };
   }
 }

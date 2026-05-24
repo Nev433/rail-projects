@@ -90,8 +90,40 @@ Plain `tsc` (no `ng-packagr` — pure NestJS, no Angular components). Output goe
 
 ```bash
 npm install   # also runs `npm run build` via the prepare script
-npm run build # tsc -p tsconfig.json
+npm run build # tsc -p tsconfig.json && postbuild:cleanup
 ```
+
+### The `postbuild:cleanup` step (important)
+
+After `tsc`, the build script deletes the package's own runtime peer-dep
+copies from its `node_modules/`:
+
+```
+node_modules/@nestjs/   node_modules/express/
+node_modules/rxjs/      node_modules/reflect-metadata/
+```
+
+This is required because the consumer's `node_modules/rail-nest-common` is
+a **symlink** to this package. By default Node resolves the symlink to its
+real path and walks UP from there when a `require()` inside the package
+(e.g. `require('@nestjs/core')`) needs to be resolved. If this package's
+own `node_modules` still has `@nestjs/core`, that copy is found first —
+producing a **different `Reflector` class identity** from the consumer's
+`@nestjs/core`. Nest DI then fails at startup with
+
+> Nest can't resolve dependencies of the ApiKeyGuard ... argument
+> Reflector at index [1] is available in the AppModule module
+
+Deleting the dupes is half the fix. The consumer **also** has to start
+Node with `--preserve-symlinks` so resolution walks up from the consumer's
+tree (where the real peer-dep copies live). The workspace
+[`scripts/ecosystem.config.js`](../../scripts/ecosystem.config.js) sets
+`NODE_OPTIONS=--preserve-symlinks` on every API process for this reason.
+A standalone consumer running `node dist/main` needs the same flag.
+
+If you regenerate `node_modules` here and skip the cleanup, every backend
+will crash at startup with the error above. The build script runs the
+cleanup automatically — don't bypass it.
 
 ## Related
 
