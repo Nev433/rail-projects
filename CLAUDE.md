@@ -546,6 +546,42 @@ The reference `vitest.config.ts` + `src/test-setup.ts` files live in
 [railML-Infrastructure/client-ng/](https://github.com/Nev433/railML-Infrastructure/tree/main/client-ng);
 copy them when standing up a new Angular project.
 
+### Accessibility (axe-core)
+
+The workspace ships `vitest-axe` matchers in the same test-setup template.
+Use it for a forward-only a11y floor — any new violation should fail
+the build.
+
+```ts
+// in some.a11y.spec.ts
+import { axe } from 'vitest-axe';
+import { toHaveNoViolations } from 'vitest-axe/matchers';
+import { expect } from 'vitest';
+
+// vitest-axe 0.1.0 ships an empty extend-expect.js; register inline
+// until a fixed version is published.
+expect.extend({ toHaveNoViolations });
+
+it('renders without axe violations', async () => {
+  const fixture = getTestBed().createComponent(SomeComponent);
+  fixture.detectChanges();
+  const result = await axe(fixture.nativeElement, {
+    rules: { 'color-contrast': { enabled: false } }, // unreliable in jsdom
+  });
+  expect(result).toHaveNoViolations();
+});
+```
+
+Reference implementation:
+[`railML-Infrastructure/client-ng/src/app/app.a11y.spec.ts`](https://github.com/Nev433/railML-Infrastructure/blob/main/client-ng/src/app/app.a11y.spec.ts).
+Copy it into each other client (one shell-level smoke spec per project
+is the baseline; add page-level a11y specs opportunistically).
+
+jsdom limitations: no real CSS / no computed layout, so colour-contrast
+is unreliable in unit tests. Use jsdom-based axe for the high-confidence
+categories (missing alt text, button vs div, missing form labels, ARIA
+misuse) and rely on manual or browser-based testing for the rest.
+
 ### Maps
 
 Plain Leaflet (no `ngx-leaflet`-style wrappers). Initialise in
