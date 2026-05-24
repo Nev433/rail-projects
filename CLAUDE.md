@@ -684,10 +684,65 @@ further.
   `neosemantics` plugin before standing up a separate triplestore.
   No project currently uses RDF.
 
-**Known gap**: no project currently uses versioned migration scripts for
-constraints/indexes — they're applied via one-shot `POST /api/init` or
-`/api/setup` endpoints. Adopting a proper migration tool is a workspace
-follow-up.
+### Versioned migrations
+
+Schema and structural-seed changes go through the **`Neo4jMigrationsModule`**
+shipped in [`rail-nest-common`](./packages/nest-common). Each consumer
+authors small `<version>_<name>.ts` files under `api/src/admin/migrations/`
+(or `api/src/init/migrations/` — wherever its init lives) and registers
+them via `Neo4jMigrationsModule.forRoot({ namespace, migrations })`. The
+runner records each applied version as a `(:_RailMigration {namespace,
+version, name, appliedAt})` audit node, filters by namespace (so
+multiple backends sharing the `gemini` database don't collide), and
+skips anything that's already in the audit on subsequent runs.
+
+```ts
+// neo4j/neo4j.module.ts — alias your Neo4jService to the contract token
+@Module({
+  providers: [
+    Neo4jService,
+    { provide: NEO4J_SESSION_PROVIDER, useExisting: Neo4jService },
+  ],
+  exports: [Neo4jService, NEO4J_SESSION_PROVIDER],
+})
+export class Neo4jModule {}
+
+// admin/admin.module.ts — register your migrations
+@Module({
+  imports: [
+    Neo4jMigrationsModule.forRoot({
+      namespace: 'rail-id-service',         // ← REQUIRED, kebab-case
+      migrations: [m001, m002, m003],
+    }),
+  ],
+})
+```
+
+**Contract** the runner imposes on each migration's `up(tx)`:
+
+- **Idempotent.** The audit write happens in a *separate* transaction
+  (Neo4j 5+ forbids mixing schema mods with data writes in one tx). If
+  the audit write fails after `up()` succeeded, `up()` will re-run on
+  the next call — so use `MERGE`, `CREATE ... IF NOT EXISTS`, and
+  match on legacy values that don't exist after first run.
+- **No `down`.** Forward-only. Fix mistakes with a new migration.
+- **Pure-ish.** Migrations don't have DI; env-aware seeding (anything
+  that reads `INIT_*` config) stays in the consumer's init service and
+  runs after `migrate()`. See `Rail-ID-Service/api/src/init/init.service.ts`
+  as the canonical example.
+
+**Adoption status** (May 2026):
+
+| Backend | Namespace | Migrations | Notes |
+|---|---|---|---|
+| Rail-ID-Service | `rail-id-service` | 6 | Canonical reference. Constraints + 3 seeds + 2 data migrations. |
+| railML-Crew | `rail-crew` | 2 | Constraints + deterministic-ID unit-type seed. |
+| railML-Timetable | `rail-timetable` | 1 | Constraints only. |
+| railML-StockCrewPlan | `rail-stock-crew-plan` | 1 | Constraints only. |
+| railML-Infrastructure | — | n/a | No DDL yet — see [rail-projects #22](https://github.com/Nev433/rail-projects/issues/22). |
+| railML-RollingStock | — | n/a | No DDL yet — see [rail-projects #22](https://github.com/Nev433/rail-projects/issues/22). |
+
+Closed [rail-projects #6](https://github.com/Nev433/rail-projects/issues/6).
 
 ---
 

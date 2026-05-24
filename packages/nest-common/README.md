@@ -10,6 +10,7 @@ Shared NestJS infrastructure for the rail-projects workspace. One canonical impl
 - **`createValidationPipe()`** — factory returning `new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true })`. Pass `extra` to override.
 - **`workspaceThrottlerConfig()`** — two named tiers (`global` 500/15min, `write` 60/min) as a `ThrottlerModuleOptions` value.
 - **`NestCommonModule.forRoot({ apiKeyEnvVar? })`** — wires `ApiKeyGuard` with the env var name your service uses (defaults to `API_SECRET_KEY`).
+- **`Neo4jMigrationsModule.forRoot({ namespace, migrations })`** — versioned Cypher migrations, per-consumer-namespaced so multiple backends sharing one Neo4j database don't collide. See [`src/neo4j-migrations/README.md`](./src/neo4j-migrations/README.md).
 
 ## Install (workspace `file:` ref)
 

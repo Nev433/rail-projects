@@ -27,10 +27,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run postbuild:cleanup",
-    "prepare": "npm run build",
-    "_comment_cleanup": "After tsc, remove peer-dep runtimes from this package's own node_modules so consumers' copies are the ones loaded at runtime. Without this, Node's symlink-resolution walks up into THIS package's node_modules first and finds duplicate @nestjs/* classes, breaking Nest DI (Reflector class identity mismatch). See packages/nest-common/README.md.",
-    "postbuild:cleanup": "rm -rf node_modules/@nestjs node_modules/express node_modules/rxjs node_modules/reflect-metadata"
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build && npm run cleanup:runtime-deps",
+    "_comment_cleanup": "After install + build, remove peer-dep runtimes from this package's own node_modules so consumers' copies are the ones loaded at runtime. Without this, Node's symlink-resolution walks up into THIS package's node_modules first and finds duplicate @nestjs/* classes, breaking Nest DI (Reflector class identity mismatch). Cleanup only runs from `prepare` (npm install lifecycle), NOT every build, so iterative `npm run build` still works after manually re-running `npm install`. See packages/nest-common/README.md.",
+    "cleanup:runtime-deps": "rm -rf node_modules/@nestjs node_modules/express node_modules/rxjs node_modules/reflect-metadata node_modules/neo4j-driver"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -41,8 +41,14 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/throttler": "^6.0.0",
     "express": "^5.0.0",
+    "neo4j-driver": "^5.0.0 || ^6.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "neo4j-driver": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@nestjs/common": "^11.1.19",
@@ -52,6 +58,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "express": "^5.0.0",
+    "neo4j-driver": "^6.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.0",
     "typescript": "~5.9.2"

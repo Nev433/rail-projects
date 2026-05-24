@@ -20,3 +20,23 @@ export {
   NestCommonModule,
   type NestCommonModuleOptions,
 } from './module/nest-common.module';
+
+// ── Neo4j migrations ────────────────────────────────────────────────
+export {
+  Neo4jMigrationsModule,
+  type Neo4jMigrationsModuleOptions,
+} from './neo4j-migrations/neo4j-migrations.module';
+
+export { Neo4jMigrationsService } from './neo4j-migrations/neo4j-migrations.service';
+
+export {
+  NEO4J_SESSION_PROVIDER,
+  type Neo4jSessionProvider,
+} from './neo4j-migrations/neo4j-session.provider';
+
+export type {
+  Neo4jMigration,
+  AppliedMigration,
+  MigrationStatus,
+  MigrateResult,
+} from './neo4j-migrations/migration.types';
