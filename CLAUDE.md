@@ -408,7 +408,7 @@ Adoption status:
 | railML-RollingStock | ✓ adopted |
 | railML-StockCrewPlan | ✓ adopted |
 | railML-Timetable | ✓ adopted |
-| Rail-ID-Service | ✗ legacy — no `ValidationPipe`, no DTOs; adoption deferred until the broader Rail-ID-Service modernisation (its own issues #1 + #3) |
+| Rail-ID-Service | ✓ adopted (backend DTO migration shipped as Rail-ID-Service #1, May 2026) |
 
 Add `rail-nest-common@file:../../rail-projects/packages/nest-common`
 to `api/package.json` when standing up a new backend.
@@ -734,7 +734,7 @@ Listed so they're not mistaken for drift to be "fixed."
 
 | Project | Deviation | Status |
 |---|---|---|
-| Rail-ID-Service | No DTOs, no `ValidationPipe`, no signals (pure RxJS), `reflect-metadata ^0.1.13` (behind), `@types/node: "latest"` (footgun) | **Legacy** — fixes welcome but not urgent |
+| Rail-ID-Service | Frontend still pure RxJS (no signals); `reflect-metadata ^0.1.13` (behind); `@types/node: "latest"` (footgun) | Backend now matches the workspace (DTOs + ValidationPipe + rail-nest-common adopted May 2026). Frontend modernisation still pending — see Rail-ID-Service issue #3 |
 | railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; throttler is single tier (100/min) not the standard two-tier; localStorage-stored API key with per-request header injection; zoneless | First three are drift; localStorage key + zoneless are deliberate |
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
 | railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
