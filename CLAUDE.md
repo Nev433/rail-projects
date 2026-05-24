@@ -608,7 +608,7 @@ Per-project status:
 | railML-Timetable | **Zoneless** | Cleaned up May 2026 — `zone.js` removed from deps + test-setup |
 | railML-RollingStock | **Zoneless** | Uses `provideZonelessChangeDetection()` |
 | railML-StockCrewPlan | **Zoneless** | `provideZonelessChangeDetection()` added May 2026 |
-| Rail-ID-Service | **Zoned (legacy)** | Whole client is pre-modern Angular; migrate as part of the frontend modernisation epic, not incrementally |
+| Rail-ID-Service | **Zoned** | Client modernised May 2026 (signals + OnPush + inject() + Leaflet `effect()` pattern); zoneless flip not yet done — promote when convenient alongside the other Zoned holdout |
 | railML-Crew | **Zoned** | Older project; migrate when convenient |
 
 ### Frontend testing
@@ -825,7 +825,7 @@ Listed so they're not mistaken for drift to be "fixed."
 
 | Project | Deviation | Status |
 |---|---|---|
-| Rail-ID-Service | Frontend still pure RxJS (no signals); `reflect-metadata ^0.1.13` (behind); `@types/node: "latest"` (footgun) | Backend now matches the workspace (DTOs + ValidationPipe + rail-nest-common adopted May 2026). Frontend modernisation still pending — see Rail-ID-Service issue #3 |
+| Rail-ID-Service | `reflect-metadata ^0.1.13` (behind); `@types/node: "latest"` (footgun) | Backend matches the workspace (DTOs + ValidationPipe + rail-nest-common, May 2026). Frontend modernised May 2026 — signals + OnPush + inject() across the whole client (closed Rail-ID-Service #3). Zoneless flip is the remaining gap — see the Zoneless table. |
 | railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; throttler is single tier (100/min) not the standard two-tier; localStorage-stored API key with per-request header injection; zoneless | First three are drift; localStorage key + zoneless are deliberate |
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
 | railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
