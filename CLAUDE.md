@@ -44,7 +44,9 @@ worked on / released independently.
 │   │   └── ecosystem.config.js               ← PM2 process map (12 dev processes)
 │   ├── packages/                             ← workspace-shared TS/Angular pkgs
 │   │   ├── nest-common/                      ← ApiKeyGuard, Neo4jExceptionFilter,
-│   │   │                                     #   @Public, ValidationPipe + Throttler factories
+│   │   │                                     #   @Public, ValidationPipe + Throttler factories,
+│   │   │                                     #   Neo4jMigrationsModule
+│   │   ├── ng-common/                        ← shared Angular ApiError + formatHttpError
 │   │   └── leaflet-map/                      ← shared Angular Leaflet wrapper
 │   └── .gitignore
 │
@@ -555,9 +557,33 @@ railML-RollingStock, railML-StockCrewPlan.
 - Thin `ApiService` wrapper around `HttpClient`.
 - Two functional interceptors registered in `app.config.ts`:
   - `apiKeyInterceptor` — injects `x-api-key` from `environment.apiKey`.
-  - `errorInterceptor` — extracts `{ error, detail }` from API
-    responses into a plain `Error` so components see `err.message`.
+  - `errorInterceptor` — extracts the workspace's `{ error, detail }`
+    shape via the shared `formatHttpError()` helper, then throws a
+    typed `ApiError` (both from [`rail-ng-common`](./packages/ng-common)).
+    Components can `instanceof ApiError` to branch on `err.status`
+    without parsing strings.
+- The interceptor file itself stays at the consumer level (≈8 lines)
+  so app-specific side-effects (toastr on 5xx in Crew; router redirect
+  on 401/403 in StockCrewPlan) are visible at the wire-up site.
 - Dev proxy `proxy.conf.json` forwards `/api → http://localhost:<api-port>`.
+
+```ts
+// Typical per-consumer error.interceptor.ts
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { catchError, throwError } from 'rxjs';
+import { ApiError, formatHttpError } from 'rail-ng-common';
+
+export { ApiError };
+export const errorInterceptor: HttpInterceptorFn = (req, next) =>
+  next(req).pipe(
+    catchError((err: HttpErrorResponse) =>
+      throwError(() => new ApiError(err.status, formatHttpError(err), err)),
+    ),
+  );
+```
+
+All 6 clients adopt this shape as of May 2026; closes
+[Rail-ID-Service #2](https://github.com/Nev433/Rail-ID-Service/issues/2).
 
 ### State
 

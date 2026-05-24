@@ -1,0 +1,47 @@
+{
+  "name": "rail-ng-common",
+  "version": "0.1.0",
+  "description": "Shared Angular client infrastructure for the rail-projects workspace: typed ApiError exception, workspace-standard HTTP error formatting, and a hookable errorInterceptor factory.",
+  "keywords": [
+    "rail",
+    "rail-projects",
+    "angular"
+  ],
+  "homepage": "https://github.com/Nev433/rail-projects#readme",
+  "bugs": {
+    "url": "https://github.com/Nev433/rail-projects/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nev433/rail-projects.git",
+    "directory": "packages/ng-common"
+  },
+  "license": "MIT",
+  "author": "Craig Nevins (Nev433)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "_comment_strip": "Run `npm run strip:deps` MANUALLY after every build before consumers install this package. Without it, npm symlinks the package and consumers' Angular compiler sees two @angular/common type declarations (this package's + consumer's), causing 'HttpInterceptorFn is not assignable' errors. The strip must NOT live in `prepare` — npm runs prepare on first consumer install of a file: ref, and would try to rebuild with deps already removed, failing the install.",
+    "strip:deps": "rm -rf node_modules/@angular"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "peerDependencies": {
+    "@angular/common": "^21.0.0"
+  },
+  "_comment_peerDeps": "Only @angular/common, and used as a TYPE-ONLY import via `import type { HttpErrorResponse }`. The compiled JS contains no `require('@angular/...')` calls. rxjs is intentionally NOT a peer dep — this package no longer ships any rxjs operators; consumers' interceptors handle the rxjs side.",
+  "devDependencies": {
+    "@angular/common": "^21.2.0",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.2"
+  }
+}
