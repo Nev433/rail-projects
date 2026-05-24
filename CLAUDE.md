@@ -95,13 +95,13 @@ deviates, see "Per-project deviations" below.
 | Backend framework | **NestJS 11** (TypeScript, strict) | Express adapter |
 | Frontend framework | **Angular 21** (TypeScript, strict) | standalone components, signals |
 | Graph DB | **Neo4j** (Desktop locally; database name `gemini`) | bolt port 7687 |
-| Relational DB | **PostgreSQL** *(aspirational — not currently used by any project)* | remove or adopt — flag |
+| Neo4j driver | **`neo4j-driver` 6.x** | three projects already there; 5.x consumers (Rail-ID-Service, Timetable, StockCrewPlan) to migrate when next touched |
 | Frontend testing | **Vitest** + `@analogjs/vite-plugin-angular` + jsdom | `npm test` → `vitest run` |
-| Backend testing | **Jest** + `@nestjs/testing` | **Decision pending** — only 3 of 6 services have it today |
+| Backend testing | **Jest** + `@nestjs/testing` | Workspace default; new backends should wire it up. Existing backends without tests catch up opportunistically |
 | e2e testing | *None standardised today.* Playwright was previously listed but is not installed anywhere | |
 | Package manager | **npm** with `package-lock.json` | every project uses npm — pnpm is not used despite earlier docs |
 | Build / monorepo tooling | **None** — each project builds independently | no Nx, no Turborepo, no npm workspaces |
-| Node version | **Decision pending** — Rail-ID-Service pins `>=26`; Timetable CI uses Node 20; others unspecified. Pick one workspace-wide minimum |
+| Node version | **`>=22.0.0`** (current LTS) | Apply via `"engines"` in every `package.json` and `.nvmrc` per project |
 | Legacy importers | **C# / .NET 10** (TPRConvertor) | predates the Nest+Angular standard; kept as-is |
 | Auxiliary frontends | **React 18 + Vite 5 + Tauri 2** (TPRConvertor/client) | deliberate — desktop app for PDF→data workflow |
 
@@ -273,10 +273,28 @@ Terms used across these projects without further explanation.
 ### Currently not tracked or unused in code
 
 The following are defined for context but have **no current usage** in
-any project. Keep here as background, but don't assume they're wired up:
-**NAPTAN**, **EPIP**, **SIRI**, **TAF/TAP TSI**, **MoI** (Memorandum of
-Implementation), **NDOVLoket**, **n10s / neosemantics**. Remove once
-their absence is confirmed deliberate.
+any project. Kept here as background — likely to surface once UK rail
+data work expands. Don't assume they're wired up today:
+
+- **NAPTAN** — UK national stop point register; likely needed if/when
+  any project ingests real public-transport data.
+- **EPIP** — European Passenger Information Profile; subset of NeTEx.
+- **SIRI** — Service Interface for Real-time Information; pairs with
+  NeTEx for live updates. Already catalogued in
+  `standards/MANIFEST.yaml` as `planned`.
+- **Darwin** — Network Rail's real-time train running info service.
+- **TRUST** — GB train movement tracking.
+
+The following were **removed** from the glossary (no current usage and
+no plausible near-term path to adoption — re-add if circumstances
+change):
+- ~~TAF/TAP TSI~~ — superseded by TEL TSI which is already covered.
+- ~~MoI~~ (Memorandum of Implementation) — internal regulatory term;
+  belongs in a deployment doc, not the project vocabulary.
+- ~~NDOVLoket~~ — Netherlands-specific; out of scope.
+- ~~n10s / neosemantics~~ — a Neo4j RDF plugin; the workspace doesn't
+  currently use it. If RDF integration becomes real, document in the
+  consuming project's CLAUDE.md, not the workspace glossary.
 
 ### Project-local vocabularies
 
@@ -397,10 +415,12 @@ private readonly logger = new Logger(MyService.name);
 this.logger.error('Failed to fetch X', error);
 ```
 
-**Decision pending**: `nestjs-pino` is in the dep tree of Infrastructure
-and RollingStock but not actually injected anywhere — either adopt it
-properly (with `LoggerModule.forRoot` and pino-injected loggers) or drop
-the dependency.
+The workspace standard is the built-in NestJS `Logger`. `nestjs-pino`
+was evaluated in Infrastructure and RollingStock but never fully
+adopted (HTTP logs in pino's format, service logs in NestJS Logger's
+format simultaneously) — dropped from both in May 2026. If structured
+production logging becomes a real need later, adopt pino *across every
+backend* in a single sweep rather than per-project.
 
 ### Controller / service split
 
@@ -465,17 +485,28 @@ railML-RollingStock, railML-StockCrewPlan.
 
 **New projects: zoneless.** Use `provideZonelessChangeDetection()` and
 omit `zone.js` from dependencies. railML-Infrastructure is the reference
-implementation. Existing zoned projects can migrate when convenient —
-not urgent.
+implementation.
+
+Per-project status:
+
+| Project | Status | Notes |
+|---|---|---|
+| railML-Infrastructure | **Zoneless** (reference) | No `zone.js` in deps; test-setup zoneless-safe |
+| railML-Timetable | **Zoneless** | Cleaned up May 2026 — `zone.js` removed from deps + test-setup |
+| railML-RollingStock | **Zoneless** | Uses `provideZonelessChangeDetection()` |
+| railML-StockCrewPlan | **Zoneless** | `provideZonelessChangeDetection()` added May 2026 |
+| Rail-ID-Service | **Zoned (legacy)** | Whole client is pre-modern Angular; migrate as part of the frontend modernisation epic, not incrementally |
+| railML-Crew | **Zoned** | Older project; migrate when convenient |
 
 ### Frontend testing
 
 **Vitest** (`vitest run`) + `@analogjs/vite-plugin-angular` + `jsdom`.
 Tests live under `client-ng/src/`. Config in `client-ng/vitest.config.ts`.
 
-Three projects (Crew, RollingStock, StockCrewPlan) currently declare
+Two projects (RollingStock, StockCrewPlan) still declare
 `"test": "ng test"` (Karma/Jasmine) but have Vitest installed — these
-scripts should be updated to `"test": "vitest run"`.
+scripts should be updated to `"test": "vitest run"`. Crew was fixed in
+May 2026.
 
 For zoneless projects: do **not** import
 `@analogjs/vite-plugin-angular/setup-vitest` (it pulls in Zone.js). Each
@@ -526,8 +557,9 @@ further.
 - **Pattern expressions**: use `COUNT { (n)-[:REL]->() }` not
   `size((n)-[:REL]->())` — `size()` over pattern expressions throws at
   runtime on current Neo4j.
-- **For RDF integration** use `n10s` / `neosemantics`; don't stand up a
-  separate triplestore unless explicitly required.
+- **For RDF integration** (if/when needed) evaluate Neo4j's `n10s` /
+  `neosemantics` plugin before standing up a separate triplestore.
+  No project currently uses RDF.
 
 **Known gap**: no project currently uses versioned migration scripts for
 constraints/indexes — they're applied via one-shot `POST /api/init` or
@@ -581,8 +613,8 @@ Listed so they're not mistaken for drift to be "fixed."
 |---|---|---|
 | Rail-ID-Service | No DTOs, no `ValidationPipe`, no signals (pure RxJS), `reflect-metadata ^0.1.13` (behind), `@types/node: "latest"` (footgun) | **Legacy** — fixes welcome but not urgent |
 | railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; throttler is single tier (100/min) not the standard two-tier; localStorage-stored API key with per-request header injection; zoneless | First three are drift; localStorage key + zoneless are deliberate |
-| railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files; eager route imports (not lazy); `nestjs-pino` in deps but not used | All drift to fix |
-| railML-Crew | DTOs flat in feature folders, not under `dto/`; `nestjs-pino` in deps but not used | Drift |
+| railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
+| railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
 | railML-StockCrewPlan | Bare `process.env` reads despite ConfigModule; `core/`+`features/` client layout (siblings use `pages/`+`services/`); no `CLAUDE.md` | Drift + missing scaffolding |
 | railML-Timetable | Uses Node `--env-file` flag instead of `@nestjs/config` for env loading | Tolerable, but inconsistent |
 | TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all; no `CLAUDE.md` | Deliberate (legacy importer scope) — needs a `CLAUDE.md` though |
