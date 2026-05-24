@@ -41,6 +41,10 @@ const DEFAULT_VIEW: { center: [number, number]; zoom: number } = {
  */
 @Component({
   selector: 'app-leaflet-map',
+  // NB: `standalone: true` is explicit here even though it's the default
+  // in Angular 21+, because consumer Angular compilers don't infer it
+  // for components imported from node_modules without baked-in metadata.
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: '<div #mapContainer style="width: 100%; height: 100%; z-index: 1;"></div>',
   styles: [
