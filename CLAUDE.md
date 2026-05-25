@@ -830,7 +830,6 @@ Listed so they're not mistaken for drift to be "fixed."
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
 | railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
 | railML-StockCrewPlan | Bare `process.env` reads despite ConfigModule; `core/`+`features/` client layout (siblings use `pages/`+`services/`); no `CLAUDE.md` | Drift + missing scaffolding |
-| railML-Timetable | Uses Node `--env-file` flag instead of `@nestjs/config` for env loading | Tolerable, but inconsistent |
 | TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all; no `CLAUDE.md` | Deliberate (legacy importer scope) — needs a `CLAUDE.md` though |
 | rail-id-client | Library, not a service; no `CLAUDE.md` or `.claude/` | Deliberate — needs a `CLAUDE.md` |
 
