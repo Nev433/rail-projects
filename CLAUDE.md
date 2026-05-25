@@ -608,8 +608,8 @@ Per-project status:
 | railML-Timetable | **Zoneless** | Cleaned up May 2026 — `zone.js` removed from deps + test-setup |
 | railML-RollingStock | **Zoneless** | Uses `provideZonelessChangeDetection()` |
 | railML-StockCrewPlan | **Zoneless** | `provideZonelessChangeDetection()` added May 2026 |
-| Rail-ID-Service | **Zoned** | Client modernised May 2026 (signals + OnPush + inject() + Leaflet `effect()` pattern); zoneless flip not yet done — promote when convenient alongside the other Zoned holdout |
-| railML-Crew | **Zoned** | Older project; migrate when convenient |
+| Rail-ID-Service | **Zoneless** | Flipped May 2026 (Rail-ID-Service #6) — `zone.js` removed, `provideZonelessChangeDetection()`, test-setup zoneless-safe |
+| railML-Crew | **Zoneless** | Implicit zoneless made explicit May 2026 (railML-Crew #4); `zone.js` was already absent from deps |
 
 ### Frontend testing
 
@@ -825,11 +825,11 @@ Listed so they're not mistaken for drift to be "fixed."
 
 | Project | Deviation | Status |
 |---|---|---|
-| Rail-ID-Service | `reflect-metadata ^0.1.13` (behind); `@types/node: "latest"` (footgun) | Backend matches the workspace (DTOs + ValidationPipe + rail-nest-common, May 2026). Frontend modernised May 2026 — signals + OnPush + inject() across the whole client (closed Rail-ID-Service #3). Zoneless flip is the remaining gap — see the Zoneless table. |
-| railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; localStorage-stored API key with per-request header injection; zoneless | First two are drift; throttler now uses `workspaceThrottlerConfig()` from rail-nest-common; localStorage key + zoneless are deliberate |
+| Rail-ID-Service | (none currently) | Backend matches the workspace (DTOs + ValidationPipe + rail-nest-common, May 2026). Frontend modernised May 2026 — signals + OnPush + inject() (closed Rail-ID-Service #3). `reflect-metadata` bumped to `^0.2.2`, `@types/node` pinned to `^24.0.0` (Rail-ID-Service #5). Zoneless flip landed (Rail-ID-Service #6). |
+| railML-Infrastructure | localStorage-stored API key with per-request header injection; zoneless; `nestjs-pino` declared but never injected ([rail-projects #25](https://github.com/Nev433/rail-projects/issues/25)) | `db/` → `neo4j/` rename + `API_KEY` → `API_SECRET_KEY` landed in railML-Infrastructure #3; throttler uses `workspaceThrottlerConfig()`; localStorage key + zoneless are deliberate |
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
-| railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift; `rail-id-client` package adoption already done (`api/src/common/rail-id.client.ts` is a thin Nest wrapper around `RailIdHttpClient`, not a re-implementation) |
-| railML-StockCrewPlan | `core/`+`features/` client layout (siblings use `pages/`+`services/`) | Drift |
+| railML-Crew | `nestjs-pino` declared but never injected ([rail-projects #25](https://github.com/Nev433/rail-projects/issues/25)) | DTOs under `dto/` landed in railML-Crew #3; `rail-id-client` adoption already done; explicit `provideZonelessChangeDetection()` added in railML-Crew #4 |
+| railML-StockCrewPlan | Route path `/stock-diagrams` vs folder `pages/vehicle-rostering/` ([railML-StockCrewPlan #3](https://github.com/Nev433/railML-StockCrewPlan/issues/3)); pre-existing `app.spec.ts` failure ([#2](https://github.com/Nev433/railML-StockCrewPlan/issues/2)) | `pages/` + `interceptors/` + `layout.component.ts` layout landed in railML-StockCrewPlan #1 |
 | TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all | Deliberate (legacy importer scope); `CLAUDE.md` present |
 | rail-id-client | Library, not a service | Deliberate — `CLAUDE.md` present; `.claude/` not needed for a no-CI library |
 
