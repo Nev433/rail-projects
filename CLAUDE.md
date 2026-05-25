@@ -829,9 +829,9 @@ Listed so they're not mistaken for drift to be "fixed."
 | railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; throttler is single tier (100/min) not the standard two-tier; localStorage-stored API key with per-request header injection; zoneless | First three are drift; localStorage key + zoneless are deliberate |
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
 | railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
-| railML-StockCrewPlan | Bare `process.env` reads despite ConfigModule; `core/`+`features/` client layout (siblings use `pages/`+`services/`); no `CLAUDE.md` | Drift + missing scaffolding |
-| TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all; no `CLAUDE.md` | Deliberate (legacy importer scope) — needs a `CLAUDE.md` though |
-| rail-id-client | Library, not a service; no `CLAUDE.md` or `.claude/` | Deliberate — needs a `CLAUDE.md` |
+| railML-StockCrewPlan | `core/`+`features/` client layout (siblings use `pages/`+`services/`) | Drift |
+| TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all | Deliberate (legacy importer scope); `CLAUDE.md` present |
+| rail-id-client | Library, not a service | Deliberate — `CLAUDE.md` present; `.claude/` not needed for a no-CI library |
 
 ---
 
