@@ -541,6 +541,9 @@ railML-RollingStock, railML-StockCrewPlan.
 - **`[class.foo]` / `[style.foo]`** bindings — never `ngClass` / `ngStyle`.
 - **`takeUntilDestroyed(destroyRef)`** on all HTTP subscriptions inside
   components.
+- **Reactive Forms only** — `FormGroup` + `formControlName`, never
+  `FormsModule` / `[(ngModel)]`. See [Forms](#forms) below for the
+  full pattern.
 
 ### App shell
 
@@ -593,6 +596,83 @@ All 6 clients adopt this shape as of May 2026; closes
   (`railml-*`, `crm_*`, `inf_*`).
 - Models live in `client-ng/src/app/models.ts` (or per-feature
   `*.models.ts`).
+
+### Forms
+
+**Reactive Forms only.** No `FormsModule`, no `[(ngModel)]`. The whole
+workspace migrated off template-driven forms by May 2026 — see the
+[rail-projects #16](https://github.com/Nev433/rail-projects/issues/16)
+epic.
+
+The canonical shape is one `FormGroup` per form, typed by an interface,
+created with `inject(FormBuilder).nonNullable.group({ ... })`:
+
+```ts
+interface MemberForm {
+  name: string;
+  staffId: string;
+  status: 'active' | 'inactive' | 'suspended';
+  homeDepotRef: string;
+}
+
+private readonly fb = inject(FormBuilder);
+readonly memberForm: FormGroup = this.fb.nonNullable.group<MemberForm>({
+  name: '',
+  staffId: '',
+  status: 'active',
+  homeDepotRef: '',
+});
+```
+
+In templates: one `<form [formGroup]="memberForm">` wrapper, every field
+bound via `formControlName="..."`. Modal open/close uses `.reset(...)`
+with the next state:
+
+```html
+<form [formGroup]="memberForm" class="row g-2">
+  <input formControlName="name" />
+  <select formControlName="status">…</select>
+</form>
+```
+
+```ts
+openEdit(m: CrewMember): void {
+  this.memberForm.reset({ name: m.name, staffId: m.staffId || '', … });
+}
+save(): void {
+  const form = this.memberForm.value as MemberForm;
+  if (!form.name?.trim()) { /* validation */ return; }
+  this.api.save({ … }).subscribe(…);
+}
+```
+
+The reference implementation lives in
+[`railML-RollingStock/client-ng/src/app/pages/vehicles/vehicles.component.ts`](https://github.com/Nev433/railML-RollingStock/blob/main/client-ng/src/app/pages/vehicles/vehicles.component.ts).
+
+#### Common migration patterns
+
+| Old (template-driven) | New (reactive) |
+|---|---|
+| `[(ngModel)]="form.field"` | `formControlName="field"` under a `[formGroup]` parent |
+| `[ngModel]="x()" (ngModelChange)="x.set($event)"` | `formControlName` + `valueChanges` if reactivity is needed |
+| `(ngModelChange)="onY($event)"` side-effect | `controlName.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe(onY)` |
+| `[disabled]="!form.foo"` on a control | `form.get('foo').valueChanges` toggling `child.enable()` / `.disable({ emitEvent: false })` (Angular warns against `[disabled]` alongside `formControlName`) |
+
+#### When *not* to use `FormGroup`
+
+A FormGroup is overkill when the page reads from / writes to a
+signal-based service and only has 1-2 controls that are really
+event-driven shortcuts (e.g. picking a current operator from a
+selector). Use `[value]="signal()"` + `(change)="handler($any($event.target).value)"`
+in that case — drops `FormsModule` without adding shadow state.
+
+#### Repeating rows
+
+Use `FormArray<FormGroup>`. The flat checkbox-list pattern (e.g.
+"select which unit types this competency authorises") can stay as a
+`signal<string[]>` if the existing `toggle(id, checked)` /
+`isChecked(id)` API is already short and clear — see
+`railML-Crew/client-ng/src/app/pages/competencies/competencies.component.ts`.
 
 ### Zoneless vs zoned
 
