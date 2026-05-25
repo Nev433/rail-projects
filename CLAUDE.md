@@ -826,13 +826,12 @@ Listed so they're not mistaken for drift to be "fixed."
 | Project | Deviation | Status |
 |---|---|---|
 | Rail-ID-Service | `reflect-metadata ^0.1.13` (behind); `@types/node: "latest"` (footgun) | Backend matches the workspace (DTOs + ValidationPipe + rail-nest-common, May 2026). Frontend modernised May 2026 — signals + OnPush + inject() across the whole client (closed Rail-ID-Service #3). Zoneless flip is the remaining gap — see the Zoneless table. |
-| railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; throttler is single tier (100/min) not the standard two-tier; localStorage-stored API key with per-request header injection; zoneless | First three are drift; localStorage key + zoneless are deliberate |
+| railML-Infrastructure | Uses `db/` instead of `neo4j/`; env var `API_KEY` instead of `API_SECRET_KEY`; localStorage-stored API key with per-request header injection; zoneless | First two are drift; throttler now uses `workspaceThrottlerConfig()` from rail-nest-common; localStorage key + zoneless are deliberate |
 | railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
-| railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift |
-| railML-StockCrewPlan | Bare `process.env` reads despite ConfigModule; `core/`+`features/` client layout (siblings use `pages/`+`services/`); no `CLAUDE.md` | Drift + missing scaffolding |
-| railML-Timetable | Uses Node `--env-file` flag instead of `@nestjs/config` for env loading | Tolerable, but inconsistent |
-| TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all; no `CLAUDE.md` | Deliberate (legacy importer scope) — needs a `CLAUDE.md` though |
-| rail-id-client | Library, not a service; no `CLAUDE.md` or `.claude/` | Deliberate — needs a `CLAUDE.md` |
+| railML-Crew | DTOs flat in feature folders, not under `dto/` | Drift; `rail-id-client` package adoption already done (`api/src/common/rail-id.client.ts` is a thin Nest wrapper around `RailIdHttpClient`, not a re-implementation) |
+| railML-StockCrewPlan | `core/`+`features/` client layout (siblings use `pages/`+`services/`) | Drift |
+| TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all | Deliberate (legacy importer scope); `CLAUDE.md` present |
+| rail-id-client | Library, not a service | Deliberate — `CLAUDE.md` present; `.claude/` not needed for a no-CI library |
 
 ---
 
