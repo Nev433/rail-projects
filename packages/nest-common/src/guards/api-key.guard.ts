@@ -68,6 +68,14 @@ export class ApiKeyGuard implements CanActivate {
     const validKey = this.config.get<string>(this.apiKeyEnvVar);
 
     if (!validKey) {
+      if (this.config.get<string>('NODE_ENV') === 'production') {
+        this.logger.error(
+          `${this.apiKeyEnvVar} is not set in production — refusing all requests`,
+        );
+        throw new UnauthorizedException(
+          'Server misconfiguration: API key not configured',
+        );
+      }
       this.logger.warn(
         `${this.apiKeyEnvVar} is not set — all requests are unauthenticated (dev mode)`,
       );
