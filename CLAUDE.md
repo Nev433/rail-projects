@@ -875,7 +875,7 @@ rather than redefining the shapes locally.
 |---|---|
 | railML-Timetable | ✓ imports from `rail-id-client` (`api/src/sync/sync.service.ts`) |
 | railML-Infrastructure | ✓ proxy controller uses workspace-shared HTTP types |
-| railML-Crew | ✗ has its own `api/src/common/rail-id.client.ts` + local interface definitions — **real duplication, worth migrating** |
+| railML-Crew | ✓ thin NestJS wrapper around `RailIdHttpClient`; all call sites use `raw.request()` / `syncEntities()` / `syncRelationships()` from the shared package (rail-projects #7, May 2026) |
 | Rail-ID-Service | n/a — *is* the upstream |
 | railML-RollingStock | n/a — no Rail-ID integration today (no `RAIL_ID_URL` env, no entity sync) |
 | railML-StockCrewPlan | n/a — no Rail-ID integration today |
