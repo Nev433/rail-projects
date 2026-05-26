@@ -906,7 +906,7 @@ Listed so they're not mistaken for drift to be "fixed."
 |---|---|---|
 | Rail-ID-Service | (none currently) | Backend matches the workspace (DTOs + ValidationPipe + rail-nest-common, May 2026). Frontend modernised May 2026 — signals + OnPush + inject() (closed Rail-ID-Service #3). `reflect-metadata` bumped to `^0.2.2`, `@types/node` pinned to `^24.0.0` (Rail-ID-Service #5). Zoneless flip landed (Rail-ID-Service #6). |
 | railML-Infrastructure | localStorage-stored API key with per-request header injection; zoneless | `db/` → `neo4j/` rename + `API_KEY` → `API_SECRET_KEY` landed in railML-Infrastructure #3; throttler uses `workspaceThrottlerConfig()`; localStorage key + zoneless are deliberate; `nestjs-pino` already dropped, deviation cleared (rail-projects #25 closed) |
-| railML-RollingStock | Flat `AppModule` — no feature `*.module.ts` files | Drift to fix; lazy routes + stub-file cleanup done May 2026 |
+| railML-RollingStock | Eager route imports in `app.routes.ts`; no `*.spec.ts` tests | `AppModule` refactored to feature modules May 2026; lazy routes + tests still pending |
 | railML-Crew | (none currently) | DTOs under `dto/` landed in railML-Crew #3; `rail-id-client` adoption already done; explicit `provideZonelessChangeDetection()` added in railML-Crew #4; `nestjs-pino` deviation note was stale (already absent from package.json), cleared in railML-Crew#5 |
 | railML-StockCrewPlan | (none currently) | `pages/` + `interceptors/` + `layout.component.ts` layout landed in railML-StockCrewPlan #1; `app.spec.ts` "should render title" fixed in #4; folder renamed to `pages/stock-diagrams/` to match the route in #5 |
 | TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all | Deliberate (legacy importer scope); `CLAUDE.md` present |
