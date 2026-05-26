@@ -385,7 +385,6 @@ imports: [
   ConfigModule.forRoot({ isGlobal: true }),
   ThrottlerModule.forRoot(workspaceThrottlerConfig()),
   NestCommonModule.forRoot(),               // API_SECRET_KEY (default)
-  // Infrastructure uses: NestCommonModule.forRoot({ apiKeyEnvVar: 'API_KEY' })
 ],
 providers: [
   { provide: APP_GUARD, useClass: ApiKeyGuard },
@@ -463,7 +462,7 @@ Read via `ConfigService` only. **Never use `process.env` outside `main.ts`.**
 | Var | Meaning |
 |---|---|
 | `PORT` | API listen port |
-| `API_SECRET_KEY` | API key for `x-api-key` header (Infrastructure currently uses `API_KEY` — outlier) |
+| `API_SECRET_KEY` | API key for `x-api-key` header |
 | `NEO4J_URI` | `bolt://localhost:7687` |
 | `NEO4J_USER` / `NEO4J_PASSWORD` / `NEO4J_DATABASE` | Connection (db usually `gemini`) |
 | `CORS_ORIGIN` | Comma-separated list of allowed origins |
