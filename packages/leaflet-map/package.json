@@ -24,13 +24,13 @@
     "README.md",
     "LICENSE"
   ],
-  "main": "./dist/fesm2022/rail-leaflet-map.mjs",
-  "module": "./dist/fesm2022/rail-leaflet-map.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./fesm2022/rail-leaflet-map.mjs",
+  "module": "./fesm2022/rail-leaflet-map.mjs",
+  "types": "./types/rail-leaflet-map.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/fesm2022/rail-leaflet-map.mjs"
+      "types": "./types/rail-leaflet-map.d.ts",
+      "default": "./fesm2022/rail-leaflet-map.mjs"
     }
   },
   "scripts": {

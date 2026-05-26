@@ -745,11 +745,32 @@ misuse) and rely on manual or browser-based testing for the rest.
 ### Maps
 
 Plain Leaflet (no `ngx-leaflet`-style wrappers). Initialise in
-`ngAfterViewInit` (or `afterNextRender` in zoneless), destroy in
-`ngOnDestroy`. Use `ResizeObserver` to call `invalidateSize()` on
-container resize. A reusable `leaflet-map.component.ts` exists in most
-projects — share via `rail-id-client` or a future shared lib if it grows
-further.
+`ngAfterViewInit`, destroy in `ngOnDestroy`. Use `ResizeObserver` to call
+`invalidateSize()` on container resize.
+
+A canonical `LeafletMapComponent` source lives in
+[`packages/leaflet-map/`](./packages/leaflet-map/). **Do not** consume it
+as an npm package (`file:` ref to the dist). Vite's `optimizeDeps`
+pre-bundler bundles `@angular/core` into the package's own chunk, creating
+a duplicate Angular runtime; any Angular API that asserts an injection
+context (`inject()`, `input()`, `output()`, `afterNextRender()`) then
+throws NG0203 when the component is first instantiated inside an `@if`
+block.
+
+**Pattern to use instead**: copy `leaflet-map.component.ts` into the
+consuming project's `src/app/components/` and import it by relative path.
+The local copy **must** use `@Input()` / `@Output()` / `EventEmitter` /
+`ngAfterViewInit()` — never `input()` / `output()` / `inject()` /
+`afterNextRender()`. This is the one permitted exception to the
+`input()`/`output()` convention, and applies only to this component.
+
+Adoption status (local copies):
+
+| Project | Status |
+|---|---|
+| railML-Timetable | ✓ `src/app/components/leaflet-map.component.ts` (May 2026) |
+| railML-Infrastructure | local copy in `src/app/components/` |
+| (others) | add as needed — copy from `packages/leaflet-map/src/` |
 
 ---
 
@@ -840,12 +861,12 @@ export class Neo4jModule {}
 
 | Backend | Namespace | Migrations | Notes |
 |---|---|---|---|
-| Rail-ID-Service | `rail-id-service` | 6 | Canonical reference. Constraints + 3 seeds + 2 data migrations. |
-| railML-Crew | `rail-crew` | 2 | Constraints + deterministic-ID unit-type seed. |
-| railML-Timetable | `rail-timetable` | 1 | Constraints only. |
-| railML-StockCrewPlan | `rail-stock-crew-plan` | 1 | Constraints only. |
-| railML-Infrastructure | `rail-infrastructure` | 1 | Constraints for 10 domain labels; defensive orphan-index cleanup baked in. |
-| railML-RollingStock | `rail-rolling-stock` | 1 | Constraints for 6 domain labels (Vehicle / Class / Type / DesignCode / Formation / AdminSettings singleton). |
+| Rail-ID-Service | `rail-id-service` | 7 | Canonical reference. Constraints + 3 seeds + 2 data migrations + fulltext name index. |
+| railML-Crew | `rail-crew` | 4 | Constraints + unit-type seed + `003_crew_ocp` (`:CrewOCP` indexes) + `004_rename_ocp_to_op` (→ `:CrewOP`, `crew_op_ft`). |
+| railML-Timetable | `rail-timetable` | 3 | Constraints + `002_ocp_fulltext` + `003_rename_ocp_to_op` (→ `:TimetableOP`, `tt_op_ft`). |
+| railML-StockCrewPlan | `rail-stock-crew-plan` | 2 | Constraints + indexes. |
+| railML-Infrastructure | `rail-infrastructure` | 5 | Constraints + track-bounds indexes + `003_infrastructure_ocp` + `004_ocp_fulltext` + `005_rename_ocp_to_op` (→ `:InfrastructureOP`, `inf_op_ft`). |
+| railML-RollingStock | `rail-rolling-stock` | 2 | Constraints for 6 RS-prefixed labels (`RSVehicle` / `RSVehicleClass` / `RSVehicleType` / `RSDesignCode` / `RSFormation` / `AdminSettings`). + name/template indexes. |
 
 Closed [rail-projects #6](https://github.com/Nev433/rail-projects/issues/6) and
 [rail-projects #22](https://github.com/Nev433/rail-projects/issues/22).
@@ -858,6 +879,107 @@ from issues like orphan unnamed indexes blocking a named constraint).
 Use `session.executeWrite(async tx => { ... })` for atomic data-write
 groups. Don't mix schema mods with data writes inside one `executeWrite` —
 Neo4j 5+ throws `ForbiddenDueToTransactionType`.
+
+---
+
+## Rail-ID → Neo4j sync convention
+
+Three apps consume Rail-ID-Service entities and persist them to their
+own Neo4j as locally-labelled OCP nodes: railML-Timetable
+(`:TimetableOP`), railML-Infrastructure (`:InfrastructureOP`), and
+railML-Crew (`:CIDEntity:CrewOP`, multi-label). The shape is uniform
+enough that new consumers should follow it verbatim.
+
+**Backend (NestJS `SyncModule` per project)**
+
+- **`POST /api/sync/locations`** — guarded by `ApiKeyGuard` (write). Calls
+  `syncEntities(client, { types, contexts, pageSize: 500 })` and
+  `syncRelationships(client, ids)` from `rail-id-client`, then in a
+  single Neo4j session:
+  1. `UNWIND $rows AS r MERGE (o:<Label> {id: r.id}) SET o.* = r.*, o.syncedAt = $syncedAt`
+  2. Resolves `_parentName` by joining `child._parentId` → `parent.opaqueId`
+     within the same label
+  3. `UNWIND $rels MERGE (a)-[rel:PART_OF {relType: r.relType}]->(b)
+     SET rel.toName / toType / toSemanticId / syncedAt = ...`
+  Returns `{ upserted: number, linked: number }`. **Never** returns raw
+  entity arrays — the frontend reads via the search endpoints below.
+
+- **`GET /api/sync/locations`** — `@Public()`, `@SkipThrottle({ write: true })`.
+  Query params: `q`, `type`, `limit` (capped at 500), `skip`, plus
+  optional `minLat/maxLat/minLon/maxLon` (Timetable + Infrastructure
+  only). Returns paginated `OcpDto[]`.
+
+- **`POST /api/sync/locations/batch`** — `@Public()`. Body `{ ids: string[] }`.
+  Used to resolve known opaqueIds (route stops, depot lookups, etc.).
+
+- **`GET /api/sync/locations/stats`** — `@Public()`. Returns
+  `{ total: number }` for pagination footers.
+
+**Search Cypher pattern** (in `SyncService.searchLocations`):
+
+1. Sanitise `q` to remove Lucene-reserved chars, append `*`, call
+   `db.index.fulltext.queryNodes('<index_name>', $q)` for fast token-prefix
+   search.
+2. **If result is empty**, fall back to a label scan with
+   `toLower(coalesce(o.name, '')) CONTAINS $qLower OR ... o.code ... OR
+   ... o.tiploc`. This catches middle-substring queries (`ondon` →
+   "London") that pure prefix matching would miss. Same `WHERE` filters
+   and `SKIP`/`LIMIT` apply, so cost is bounded.
+3. `OPTIONAL MATCH (child:<Label> {_parentId: o.id|opaqueId})` to compute
+   a `_childSummary` for the row.
+
+**Required Neo4j migrations** (namespaced per project):
+
+- Unique constraint on the OCP node's primary key (`id` for Timetable
+  and Infrastructure, dual-label means `opaqueId` already unique from
+  CIDEntity for Crew)
+- Range index on `(o.type)` and `(o._parentId)`
+- Full-text index `<prefix>_ocp_ft` on `(name, code, tiploc)`
+
+**Frontend (Angular state + Locations tab)**
+
+- A single state-service signal `locationStats: { total: number }`
+  populated from `GET /sync/locations/stats`, used by pagination
+  footers and "no data" placeholders.
+- Sync result written to `adminSettings.lastSync / lastSyncTotal /
+  lastSyncLinked` (persisted to localStorage alongside the rest of
+  admin settings).
+- Locations tab uses a **two-control filter bar**: a text search box
+  and an Entity Type dropdown. No property-key/value filters — they
+  proved low-value and tangled the UI. The search is debounced 250ms
+  via a `Subject + debounceTime + switchMap` pipeline that hits
+  `GET /sync/locations`. Page resets to 1 on any filter change.
+- `hasNext` is derived from `entities().length >= itemsPerPage()`
+  (page-full heuristic) — cheaper than a separate count query per page.
+- Detail modal layout: left column (Basic Details / Notes / Linked
+  Identifiers / project-specific extras), right column (Map / Type-
+  Specific Attributes / Related Entities). Per-project extras go in
+  the left column under their own `section-hdr` (Crew uses this for
+  "Configure Crew Depot" link, Infrastructure for "Track Positioning").
+- Relationship badges built from `_parentId`/`_parentName` (→ Part Of)
+  and `_childSummary` (← Has childType, with count suffix).
+
+**Adoption status** (May 2026):
+
+| Project | OCP label | Full-text index | Substring fallback |
+|---|---|---|---|
+| railML-Timetable | `:TimetableOP` | `tt_op_ft` | ✓ |
+| railML-Infrastructure | `:InfrastructureOP` | `inf_op_ft` | ✓ |
+| railML-Crew | `:CIDEntity:CrewOP` (multi-label) | `crew_op_ft` | ✓ |
+
+The Crew project uses multi-label because existing crew records already
+hold relationships to `:CIDEntity {opaqueId: ...}` (members'
+`HOME_DEPOT`, routes' `CALLS_AT`, members' `OF_CREW_TYPE`). Adding the
+`:CrewOP` label at sync time gives a fast-MATCH path for OCP-only
+queries without scanning every CIDEntity (which also contains crew-type
+entities).
+
+**Divergence from Rail-ID-Service's own entity search**: Rail-ID-Service
+uses `toLower(field) CONTAINS $search` over `name`, `brandName`,
+`tradingName`, `semanticId`, `opaqueId`, and parent name. Consumer apps
+only index `name`/`code`/`tiploc` and search via prefix-first with
+CONTAINS fallback. Brand/trading names aren't currently mirrored — add
+them to `entityToRow` if a consumer needs to search by those.
 
 ---
 
@@ -908,6 +1030,7 @@ Listed so they're not mistaken for drift to be "fixed."
 | railML-Infrastructure | localStorage-stored API key with per-request header injection; zoneless | `db/` → `neo4j/` rename + `API_KEY` → `API_SECRET_KEY` landed in railML-Infrastructure #3; throttler uses `workspaceThrottlerConfig()`; localStorage key + zoneless are deliberate; `nestjs-pino` already dropped, deviation cleared (rail-projects #25 closed) |
 | railML-RollingStock | (none currently) | `AppModule` refactored to feature modules May 2026; lazy routes already in place; Jest + Vitest smoke specs added May 2026 |
 | railML-Crew | (none currently) | DTOs under `dto/` landed in railML-Crew #3; `rail-id-client` adoption already done; explicit `provideZonelessChangeDetection()` added in railML-Crew #4; `nestjs-pino` deviation note was stale (already absent from package.json), cleared in railML-Crew#5 |
+| railML-Timetable | Local `LeafletMapComponent` uses `@Input()`/`@Output()` instead of `input()`/`output()` | Deliberate — Vite pre-bundling of the shared `rail-leaflet-map` package creates a duplicate Angular runtime that fails `assertInInjectionContext()` on signal APIs. The component lives at `src/app/components/leaflet-map.component.ts` and is imported by relative path. See workspace Maps convention. |
 | railML-StockCrewPlan | (none currently) | `pages/` + `interceptors/` + `layout.component.ts` layout landed in railML-StockCrewPlan #1; `app.spec.ts` "should render title" fixed in #4; folder renamed to `pages/stock-diagrams/` to match the route in #5 |
 | TPRConvertor | .NET 10 + React + Tauri — not Nest+Angular at all | Deliberate (legacy importer scope); `CLAUDE.md` present |
 | rail-id-client | Library, not a service | Deliberate — `CLAUDE.md` present; `.claude/` not needed for a no-CI library |
