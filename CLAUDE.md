@@ -100,7 +100,7 @@ deviates, see "Per-project deviations" below.
 | Graph DB | **Neo4j** (Desktop locally; database name `gemini`) | bolt port 7687 |
 | Neo4j driver | **`neo4j-driver` 6.x** | all six backends on 6.0.1 |
 | Frontend testing | **Vitest** + `@analogjs/vite-plugin-angular` + jsdom | `npm test` → `vitest run` |
-| Backend testing | **Jest** + `@nestjs/testing` | Workspace default. Every backend has it wired in (May 2026 rollout for the 3 holdouts: Rail-ID-Service, RollingStock, Timetable) |
+| Backend testing | **Jest** + `@nestjs/testing` | Workspace default. All six backends have it wired in with a smoke spec. |
 | e2e testing | *None standardised today.* Playwright was previously listed but is not installed anywhere | |
 | Package manager | **npm** with `package-lock.json` | every project uses npm — pnpm is not used despite earlier docs |
 | Build / monorepo tooling | **None** — each project builds independently | no Nx, no Turborepo, no npm workspaces |
