@@ -98,7 +98,7 @@ deviates, see "Per-project deviations" below.
 | Backend framework | **NestJS 11** (TypeScript, strict) | Express adapter |
 | Frontend framework | **Angular 21** (TypeScript, strict) | standalone components, signals |
 | Graph DB | **Neo4j** (Desktop locally; database name `gemini`) | bolt port 7687 |
-| Neo4j driver | **`neo4j-driver` 6.x** | three projects already there; 5.x consumers (Rail-ID-Service, Timetable, StockCrewPlan) to migrate when next touched |
+| Neo4j driver | **`neo4j-driver` 6.x** | all six backends on 6.0.1 |
 | Frontend testing | **Vitest** + `@analogjs/vite-plugin-angular` + jsdom | `npm test` → `vitest run` |
 | Backend testing | **Jest** + `@nestjs/testing` | Workspace default. Every backend has it wired in (May 2026 rollout for the 3 holdouts: Rail-ID-Service, RollingStock, Timetable) |
 | e2e testing | *None standardised today.* Playwright was previously listed but is not installed anywhere | |
