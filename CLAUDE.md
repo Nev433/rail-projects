@@ -882,7 +882,7 @@ export class Neo4jModule {}
 | railML-Crew | `rail-crew` | 4 | Constraints + unit-type seed + `003_crew_ocp` (`:CrewOCP` indexes) + `004_rename_ocp_to_op` (→ `:CrewOP`, `crew_op_ft`). |
 | railML-Timetable | `rail-timetable` | 3 | Constraints + `002_ocp_fulltext` + `003_rename_ocp_to_op` (→ `:TimetableOP`, `tt_op_ft`). |
 | railML-StockCrewPlan | `rail-stock-crew-plan` | 2 | Constraints + indexes. |
-| railML-Infrastructure | `rail-infrastructure` | 5 | Constraints + track-bounds indexes + `003_infrastructure_ocp` + `004_ocp_fulltext` + `005_rename_ocp_to_op` (→ `:InfrastructureOP`, `inf_op_ft`). |
+| railML-Infrastructure | `rail-infrastructure` | 12 | Constraints + track-bounds indexes + OCP→OP rename (`001`–`005`); then the railML 3.3 IS restructure (`006`–`012`): topology (`NET_RELATION` from `CONNECTS_TO`, `Network`/`Level`), Track `LINEAR_LOCATION`/`SPOT_LOCATION` + physical-length backfill, and located characteristic elements (speed/electrification/weight/gauge/curves). The store now mirrors railML's three layers and round-trips losslessly to/from railML 3.3 XML. |
 | railML-RollingStock | `rail-rolling-stock` | 2 | Constraints for 6 RS-prefixed labels (`RSVehicle` / `RSVehicleClass` / `RSVehicleType` / `RSDesignCode` / `RSFormation` / `AdminSettings`). + name/template indexes. |
 
 Closed [rail-projects #6](https://github.com/Nev433/rail-projects/issues/6) and
