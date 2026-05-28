@@ -15,6 +15,7 @@ export { Neo4jExceptionFilter } from './filters/neo4j-exception.filter';
 
 export { createValidationPipe } from './factories/validation-pipe';
 export { workspaceThrottlerConfig } from './factories/throttler';
+export { resolveCorsOrigins } from './factories/cors';
 
 export {
   NestCommonModule,
