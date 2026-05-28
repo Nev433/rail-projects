@@ -878,7 +878,7 @@ export class Neo4jModule {}
 
 | Backend | Namespace | Migrations | Notes |
 |---|---|---|---|
-| Rail-ID-Service | `rail-id-service` | 13 | Canonical reference. Constraints + 3 seeds + 2 data migrations + fulltext name index + user auth fields + API key constraints + refresh token constraints + login lockout index + audit log indexes + mapping context constraint + seed. |
+| Rail-ID-Service | `rail-id-service` | 14 | Canonical reference. Constraints + 3 seeds + 2 data migrations + fulltext name index + user auth fields + API key constraints + refresh token constraints + login lockout index + audit log indexes + mapping context constraint + seed + type-category relationship. |
 | railML-Crew | `rail-crew` | 4 | Constraints + unit-type seed + `003_crew_ocp` (`:CrewOCP` indexes) + `004_rename_ocp_to_op` (→ `:CrewOP`, `crew_op_ft`). |
 | railML-Timetable | `rail-timetable` | 3 | Constraints + `002_ocp_fulltext` + `003_rename_ocp_to_op` (→ `:TimetableOP`, `tt_op_ft`). |
 | railML-StockCrewPlan | `rail-stock-crew-plan` | 2 | Constraints + indexes. |
