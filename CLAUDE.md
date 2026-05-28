@@ -59,6 +59,20 @@ worked on / released independently.
 ├── railML-StockCrewPlan/                     github.com/Nev433/railML-StockCrewPlan
 ├── TPRConvertor/                             github.com/Nev433/TPRConvertor
 │
+├── create-export.sh                          ← machine-transfer script; copies all
+│                                              source (minus build artefacts) into
+│                                              export/ — see "Transferring to a new
+│                                              machine" below
+├── export/                                   ← generated snapshot (local only, not
+│                                              in any repo; produced by create-export.sh)
+│   ├── setup.sh                              ← npm install everywhere + dotnet restore
+│   ├── start-all.sh                          ← build APIs → start all 12 via PM2
+│   ├── stop-all.sh                           ← stop + remove all PM2 processes
+│   ├── tpr-start.sh                          ← build + launch TPRConvertor
+│   ├── tpr-stop.sh                           ← force-stop TPRConvertor
+│   ├── ecosystem.config.js                   ← portable PM2 config (paths via __dirname)
+│   └── README.md
+│
 ├── .claude/                                  ← local Claude Code settings
 │                                              (not in any repo, lives on disk)
 └── ToDo/                                     ← legacy / pre-conversion projects,
@@ -781,7 +795,10 @@ Adoption status (local copies):
 - **`Neo4jService` at `src/neo4j/`**, exported by a `@Global()`
   `Neo4jModule`. Set `disableLosslessIntegers: true` — and consequently
   **never call `.toNumber()`** on a Neo4j result value (they're plain
-  JS numbers).
+  JS numbers). Set `maxConnectionPoolSize: 20` and
+  `connectionAcquisitionTimeout: 10_000` — the driver default of 100
+  connections exhausts Neo4j Desktop's bolt-connection limit; 20 is the
+  right ceiling for a single-instance API.
 - **Always close the session in `finally`**:
   ```ts
   const session = this.neo4j.getSession();
@@ -861,7 +878,7 @@ export class Neo4jModule {}
 
 | Backend | Namespace | Migrations | Notes |
 |---|---|---|---|
-| Rail-ID-Service | `rail-id-service` | 7 | Canonical reference. Constraints + 3 seeds + 2 data migrations + fulltext name index. |
+| Rail-ID-Service | `rail-id-service` | 13 | Canonical reference. Constraints + 3 seeds + 2 data migrations + fulltext name index + user auth fields + API key constraints + refresh token constraints + login lockout index + audit log indexes + mapping context constraint + seed. |
 | railML-Crew | `rail-crew` | 4 | Constraints + unit-type seed + `003_crew_ocp` (`:CrewOCP` indexes) + `004_rename_ocp_to_op` (→ `:CrewOP`, `crew_op_ft`). |
 | railML-Timetable | `rail-timetable` | 3 | Constraints + `002_ocp_fulltext` + `003_rename_ocp_to_op` (→ `:TimetableOP`, `tt_op_ft`). |
 | railML-StockCrewPlan | `rail-stock-crew-plan` | 2 | Constraints + indexes. |
@@ -1072,6 +1089,61 @@ symlink is broken, no project will see workspace conventions.
 - **Workspace-wide work** (editing this file, the `standards/` catalogue,
   filing cross-cutting issues) is the only case for opening Claude Code
   in `~/Developer/rail-projects/` itself.
+
+### Transferring to a new machine
+
+`~/Developer/create-export.sh` copies every project's source code —
+minus build artefacts — into `~/Developer/export/`, then writes a set
+of ready-to-run scripts into that folder.
+
+**What is excluded** (to keep the snapshot small):
+
+| Excluded path | Why |
+|---|---|
+| `node_modules/`, `dist/`, `.angular/` | Rebuilt by `npm install` / `npm run build` |
+| `rail-projects/standards/railML/3.3/documentation/` | 99 MB of generated HTML diagrams |
+| `rail-projects/standards/railML/3.3/source/model/` | 69 MB UML/XMI model files — reference only |
+| `TPRConvertor/uploads/` | Runtime-uploaded PDFs (temp data, not source) |
+| `TPRConvertor/TPRs/` | 25 MB reference PDFs — copy separately if needed |
+| `TPRConvertor/**/bin/`, `**/obj/` | .NET build intermediates |
+| `src-tauri/target/` | Rust build cache |
+
+The XSD schemas and codelists that code actually references
+(`source/schema/`, `source/codelists/`) are **kept**.
+
+**On the new machine** (once the `export/` folder has been copied across):
+
+> **Always type commands in the terminal — never click `.sh` files.**
+> Clicking a `.sh` file in VS Code's Explorer or on a terminal hyperlink
+> triggers macOS's "open with" dialog instead of executing the script.
+> Use `bash scriptname.sh` to be explicit and avoid any file-association
+> quirk.
+
+```bash
+# 1 — install all npm deps + dotnet restore (run once)
+bash setup.sh
+
+# 2 — build every NestJS API and start all 12 processes via PM2
+bash start-all.sh
+
+# 3 — stop everything
+bash stop-all.sh
+```
+
+TPRConvertor runs separately:
+
+```bash
+bash tpr-start.sh   # dotnet build + tauri dev (first Rust compile: ~10 min)
+bash tpr-stop.sh    # force-kill if needed from a second terminal
+```
+
+The `ecosystem.config.js` written into `export/` is **portable** —
+it resolves all paths via `__dirname` so it works wherever the folder
+is placed, unlike the original `rail-projects/scripts/ecosystem.config.js`
+which hard-codes `$HOME/Developer`.
+
+**Note:** `create-export.sh` itself lives at `~/Developer/` and is not
+tracked in any git repo — it is a local-only workspace utility.
 
 ### Settings
 
