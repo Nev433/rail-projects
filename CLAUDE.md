@@ -181,6 +181,42 @@ Shared TypeScript types for Rail-ID entities live in
 package via a `file:` ref rather than redefining `RailIdEntity` /
 `RailIdRelationship` shapes locally.
 
+### Restriction management is split across two apps (by design)
+
+**Decided** (May 2026): restrictions are modelled in **two** apps along
+railML 3.3's own schema boundary, not duplicated into one.
+
+- **railML-Infrastructure** owns **geometry-located** restrictions —
+  railML *infrastructure*-schema `SpeedSection` (`isTemporary=true` for
+  TSRs) and `RestrictionArea` (15 `tRestrictionAreaType` values: noSanding,
+  noStopping, lowerPantograph, changeTractionSystem, etc.), attached to
+  track geometry (`Restriction-[:APPLIES_TO]->NetElement`). The map UI
+  (track box-draw, partial-section offsets, spot-snapping) lives here
+  because only this app has track geometry.
+- **railML-Timetable** owns the **operational** restriction — railML
+  *timetable*-schema `TemporaryRestriction`, located by an
+  operational-point sequence (`:TimetableRestriction-[:RESTRICTS_OP]->
+  :TimetableOP`, 1 OP = point, 2+ = section), validity-linked, with a
+  driver message. Valid types: Closure, AdditionalRunTime,
+  ElectrificationUnavailable, Temporary. No geometry; OPs are picked via
+  the synced-locations search. `SpeedRestriction` (IS `SpeedSection`) and
+  `CurrentLimitation` (IS `RestrictionArea.changeAllowedCurrentConsumption`)
+  are intentionally absent — both belong in IS to keep the schema boundary clean.
+
+**Why**: railML itself separates these — a speed limit on track is an
+infrastructure fact; a dated operational closure/capacity-reduction over
+a route is a timetable concern. Each restriction type belongs where its
+referenced data already lives (geometry in Infrastructure; OPs +
+validities in Timetable). Duplicating a single feature into both would
+mean two sources of truth and constant drift.
+
+**How to apply**: don't port the Infrastructure restrictions tab into
+other apps wholesale. Author geometry restrictions in Infrastructure and
+OP-sequence restrictions in Timetable. If another app needs to *display*
+infra restrictions, surface them read-only via the existing
+`/api/infra/*` proxy rather than re-authoring. Per-app detail lives in
+each project's CLAUDE.md.
+
 ---
 
 ## Data standards

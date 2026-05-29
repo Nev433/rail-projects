@@ -37,14 +37,47 @@ PM2 itself isn't a workspace requirement — you can run any subset of
 projects manually with their own `npm run dev` if you only need a few.
 PM2 is just convenient when you want the whole stack up at once.
 
+## Workspace-level scripts (outside this folder)
+
+`~/Developer/create-export.sh` lives one level above this folder (at the
+workspace root, not tracked in any repo). It packages the entire workspace
+for transfer to a new machine:
+
+```bash
+cd ~/Developer
+./create-export.sh        # produces ~/Developer/export/
+```
+
+It copies every project's source code (excluding `node_modules/`, `dist/`,
+`.angular/`, large reference-only railML assets, and TPRConvertor runtime
+data), then writes five ready-to-run scripts into `export/`:
+
+| Script | Purpose |
+|---|---|
+| `setup.sh` | `npm install` everywhere + `dotnet restore` (run once) |
+| `start-all.sh` | Build all APIs then start all 12 processes via PM2 |
+| `stop-all.sh` | Stop and remove all PM2 processes |
+| `tpr-start.sh` | Build .NET API + launch Tauri desktop app |
+| `tpr-stop.sh` | Force-kill TPRConvertor if needed from a second terminal |
+
+It also writes a portable `ecosystem.config.js` that resolves paths via
+`__dirname` (unlike the `scripts/ecosystem.config.js` here, which
+hard-codes `$HOME/Developer`).
+
+Full details: see "Transferring to a new machine" in
+[`../CLAUDE.md`](../CLAUDE.md).
+
+---
+
 ## What was removed
 
-Two earlier scripts that the pre-split umbrella-repo era needed:
+One earlier script from the pre-split umbrella-repo era:
 
-- `~/Developer/export-projects.sh` — rsync each project to `~/Developer/export/`
-  for offline backup/sharing.
-- `~/Developer/export/` — the snapshot folder it produced (~104 MB).
+- `~/Developer/export-projects.sh` — a simpler rsync script that produced
+  a ~104 MB snapshot. Removed in
+  [rail-projects #11](https://github.com/Nev433/rail-projects/issues/11)
+  when every project became its own GitHub repo.
 
-Both are redundant now: every project is its own GitHub repo with its
-own history and can be cloned/forked/shared individually. Removed in
-[rail-projects #11](https://github.com/Nev433/rail-projects/issues/11).
+The current `~/Developer/create-export.sh` supersedes it: it strips far
+more build artefacts (17 MB vs 104 MB output), handles TPRConvertor's
+.NET + Rust project, and bundles the start/stop scripts.
