@@ -32,7 +32,7 @@
     "_comment_bootstrap": "npm runs prepare when a consumer installs this package via `file:` ref, BEFORE running `npm install` inside the linked directory. That means devDeps (including tsc) are not yet present and `npm run build` would fail with `sh: tsc: command not found`. The first step here populates node_modules with --ignore-scripts so we don't recurse into our own prepare. Re-runs are idempotent — `npm install` with an already-populated node_modules is a no-op.",
     "bootstrap-deps": "npm install --ignore-scripts --no-audit --no-fund",
     "_comment_strip": "After install + build, strip @angular/* from node_modules so consumers' Angular compiler doesn't see two @angular/common type declarations (this package's + consumer's), causing 'HttpInterceptorFn is not assignable' errors. Safe to run inside prepare now that bootstrap-deps re-populates first on every install.",
-    "strip:deps": "rm -rf node_modules/@angular"
+    "strip:deps": "node -e \"require('fs').rmSync('node_modules/@angular',{recursive:true,force:true})\""
   },
   "engines": {
     "node": ">=22.0.0"
