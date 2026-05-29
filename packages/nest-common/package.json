@@ -32,7 +32,7 @@
     "_comment_bootstrap": "npm runs prepare when a consumer installs this package via `file:` ref, BEFORE running `npm install` inside the linked directory. That means devDeps (including tsc) are not yet present and `npm run build` would fail with `sh: tsc: command not found`. The first step here populates node_modules with --ignore-scripts so we don't recurse into our own prepare. Re-runs are idempotent — `npm install` with an already-populated node_modules is a no-op.",
     "bootstrap-deps": "npm install --ignore-scripts --no-audit --no-fund",
     "_comment_cleanup": "After install + build, remove peer-dep runtimes from this package's own node_modules so consumers' copies are the ones loaded at runtime. Without this, Node's symlink-resolution walks up into THIS package's node_modules first and finds duplicate @nestjs/* classes, breaking Nest DI (Reflector class identity mismatch).",
-    "cleanup:runtime-deps": "rm -rf node_modules/@nestjs node_modules/express node_modules/rxjs node_modules/reflect-metadata node_modules/neo4j-driver"
+    "cleanup:runtime-deps": "node -e \"['@nestjs','express','rxjs','reflect-metadata','neo4j-driver'].forEach(p=>require('fs').rmSync('node_modules/'+p,{recursive:true,force:true}))\""
   },
   "engines": {
     "node": ">=22.0.0"
