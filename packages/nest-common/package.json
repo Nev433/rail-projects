@@ -35,7 +35,7 @@
     "cleanup:runtime-deps": "node -e \"['@nestjs','express','rxjs','reflect-metadata','neo4j-driver'].forEach(p=>require('fs').rmSync('node_modules/'+p,{recursive:true,force:true}))\""
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.0.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",

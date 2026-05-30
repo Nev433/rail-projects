@@ -35,7 +35,7 @@
     "strip:deps": "node -e \"require('fs').rmSync('node_modules/@angular',{recursive:true,force:true})\""
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.0.0"
   },
   "peerDependencies": {
     "@angular/common": "^21.0.0"

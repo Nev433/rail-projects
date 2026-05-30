@@ -104,7 +104,7 @@ deviates, see "Per-project deviations" below.
 | e2e testing | *None standardised today.* Playwright was previously listed but is not installed anywhere | |
 | Package manager | **npm** with `package-lock.json` | every project uses npm — pnpm is not used despite earlier docs |
 | Build / monorepo tooling | **None** — each project builds independently | no Nx, no Turborepo, no npm workspaces |
-| Node version | **`>=22.0.0`** (current LTS) | Apply via `"engines"` in every `package.json` and `.nvmrc` per project |
+| Node version | **`>=26.0.0`** — pinned to Node 26 | Node 26 is the current release line (becomes Active LTS Oct 2026; Node 24 is today's LTS). Standardised May 2026: `"engines": { "node": ">=26.0.0" }` in every `package.json` **and** a `26` `.nvmrc` at every project root |
 | Legacy importers | **C# / .NET 10** (TPRConvertor) | predates the Nest+Angular standard; kept as-is |
 | Auxiliary frontends | **React 18 + Vite 5 + Tauri 2** (TPRConvertor/client) | deliberate — desktop app for PDF→data workflow |
 
