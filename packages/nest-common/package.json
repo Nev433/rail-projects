@@ -58,7 +58,7 @@
     "@nestjs/core": "^11.1.19",
     "@nestjs/throttler": "^6.5.0",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "express": "^5.0.0",
     "neo4j-driver": "^6.0.0",
     "reflect-metadata": "^0.2.2",

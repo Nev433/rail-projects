@@ -43,7 +43,7 @@
   "_comment_peerDeps": "Only @angular/common, and used as a TYPE-ONLY import via `import type { HttpErrorResponse }`. The compiled JS contains no `require('@angular/...')` calls. rxjs is intentionally NOT a peer dep — this package no longer ships any rxjs operators; consumers' interceptors handle the rxjs side.",
   "devDependencies": {
     "@angular/common": "^21.2.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "typescript": "~5.9.2"
   }
 }
